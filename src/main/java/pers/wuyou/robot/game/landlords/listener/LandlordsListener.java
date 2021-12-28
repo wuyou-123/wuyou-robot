@@ -97,7 +97,7 @@ public class LandlordsListener {
                 case POKER_PLAY:
                     MessageDispenser.playerPoker(message, data);
                     break;
-                case GAME_END:
+                case NO_START:
                 case PLAYER_READY:
                     if (isPrivateMsg) {
                         MessageDispenser.playerReady(message, data);

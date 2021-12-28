@@ -26,7 +26,7 @@ public enum RoomStatus {
 
     PLAYER_READY("玩家准备"),
 
-    GAME_END("游戏结束");
+    NO_START("未开始");
 
     private final String msg;
 

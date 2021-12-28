@@ -75,7 +75,7 @@ public class GamePlayerPlayPoker implements GameEvent {
             // 游戏结束
             NotifyUtil.notifyPlayWin(player);
             room.gameEnd();
-            room.setStatus(RoomStatus.GAME_END);
+            room.setStatus(RoomStatus.NO_START);
         } else {
             // 通知下一位玩家出牌
             room.setCurrentPlayer(next);

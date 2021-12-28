@@ -108,7 +108,7 @@ public class Room {
         callLandlordsCount = 0;
         lastPlayPlayerIndex = -1;
         currentPlayerIndex = -1;
-        status = RoomStatus.GAME_STARTING;
+        status = RoomStatus.NO_START;
         for (Player player : playerList) {
             player.setCalledLandlords(null);
         }
