@@ -1,0 +1,10 @@
+simbot:
+  core:
+    scan-package: pers.wuyou.robot
+    logo:
+      enable: false
+    tips:
+      enable: false
+  component:
+    mirai:
+      protocol: ANDROID_PHONE
