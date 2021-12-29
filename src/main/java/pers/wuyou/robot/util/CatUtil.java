@@ -5,7 +5,6 @@ import catcode.CodeTemplate;
 import catcode.MutableNeko;
 import catcode.Neko;
 import love.forte.catcode.NekoObjects;
-import love.forte.simbot.api.message.MessageContent;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MessageGet;
 import love.forte.simbot.api.message.events.MsgGet;
@@ -132,9 +131,9 @@ public class CatUtil {
     /**
      * 获取所有艾特的QQ号
      */
-    public static List<String> getAtList(MessageContent msg) {
+    public static List<String> getAtList(MessageGet msg) {
         List<String> list = new ArrayList<>();
-        for (Neko neko : msg.getCats(Constant.AT)) {
+        for (Neko neko : msg.getMsgContent().getCats(Constant.AT)) {
             if (neko.get("code") != null) {
                 list.add(neko.get("code"));
             }

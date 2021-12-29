@@ -38,7 +38,7 @@ public class RobotListenerInterceptor implements ListenerInterceptor {
             // TODO: 添加群开关机状态判断
             final GroupMsg groupMsg = (GroupMsg) msgGet;
             setGroupInfo(listenerContext, groupMsg);
-            listenerContext.instant(ContextType.AT_LIST, groupMsg.getMsgContent().getCats(Constant.AT));
+            listenerContext.instant(ContextType.AT_LIST, CatUtil.getAtList(groupMsg));
             listenerContext.instant(ContextType.AT_SET, CatUtil.getAts(groupMsg));
             if (!groupMsg.getAccountInfo().getAnonymous()) {
                 final GroupMemberInfo groupMemberInfo = RobotUtil.getter().getMemberInfo(groupMsg);

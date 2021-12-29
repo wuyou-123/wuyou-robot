@@ -107,7 +107,7 @@ public @interface ContextType {
     /**
      * 获取发送消息的艾特列表
      * <p>
-     * value: {@link CatUtil#getAtList(MessageContent)}
+     * value: {@link CatUtil#getAtList(MessageGet)}
      */
     String AT_LIST = "atList";
     /**
