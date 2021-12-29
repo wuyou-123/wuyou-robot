@@ -3,8 +3,10 @@ package pers.wuyou.robot.game.landlords.common;
 import cn.hutool.core.thread.ThreadUtil;
 import lombok.extern.slf4j.Slf4j;
 import pers.wuyou.robot.game.landlords.GameManager;
+import pers.wuyou.robot.game.landlords.entity.Player;
 import pers.wuyou.robot.game.landlords.entity.Room;
 import pers.wuyou.robot.game.landlords.enums.GameEventCode;
+import pers.wuyou.robot.game.landlords.util.NotifyUtil;
 import pers.wuyou.robot.util.RobotUtil;
 import pers.wuyou.robot.util.SenderUtil;
 
@@ -55,6 +57,13 @@ public class GameEventManager {
                     message = "群主已禁止群成员发起临时会话, 您可以添加机器人为好友后继续操作, 当前机器人账号: " + RobotUtil.getDefaultBotCode();
                 }
                 SenderUtil.sendGroupMsg(groupCode, message);
+                String accountCode = data.get(Constant.ACCOUNT_CODE).toString();
+                Player player = GameManager.getPlayer(accountCode);
+                NotifyUtil.notifyRoom(groupCode, String.format("玩家 %s 退出了房间", player));
+                GameManager.removePlayer(player);
+                if (room != null) {
+                    room.gameEnd();
+                }
             }
         });
     }

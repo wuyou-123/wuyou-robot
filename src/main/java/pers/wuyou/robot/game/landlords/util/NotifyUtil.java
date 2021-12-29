@@ -235,6 +235,14 @@ public class NotifyUtil {
     /**
      * 通知玩家加入房间成功并发送房间内玩家状态
      */
+    public static void notifyPlayerCreateSuccess(Player player) {
+        notifyRoom(player, "创建房间成功", 1);
+        notifyPlayerStatus(player);
+    }
+
+    /**
+     * 通知玩家加入房间成功并发送房间内玩家状态
+     */
     public static void notifyPlayerJoinSuccess(Player player) {
         notifyRoom(player, "加入房间成功", 1);
         notifyPlayerStatus(player);

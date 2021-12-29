@@ -47,7 +47,7 @@ public class GamePlayerJoin implements GameEvent {
         }
         player = GameManager.addPlayerAndRoom(accountCode, name, groupCode);
         // 创建房间成功
-        NotifyUtil.notifyRoom(player.getRoom(), "创建房间成功\n私聊机器人发送\"准备\"后准备");
+        NotifyUtil.notifyPlayerCreateSuccess(player);
     }
 
 }
