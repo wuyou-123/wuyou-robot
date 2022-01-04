@@ -18,7 +18,7 @@ import java.util.Map;
  * @author wuyou
  */
 public class MessageDispenser {
-    private final static List<String> CALL_LANDLORDS_CMD_LIST = Arrays.asList("抢", "抢地主", "是", "y", "yes");
+    private final static List<String> CALL_LANDLORDS_CMD_LIST = Arrays.asList("抢", "抢地主", "是", "y", "yes", "确认");
     private final static List<String> NOT_CALL_LANDLORDS_CMD_LIST = Arrays.asList("不抢", "不抢地主", "不", "否", "n", "no");
     private final static List<String> PASS_CMD_LIST = Arrays.asList("不要", "不出", "过", "要不起", "no", "pass", "p");
     private final static List<String> EXIT_CMD_LIST = Arrays.asList("退出", "退出游戏", "离开", "离开房间", "不玩了", "我不玩了", "exit", "e");

@@ -1,6 +1,9 @@
 package pers.wuyou.robot.game.landlords;
 
+import cn.hutool.core.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import pers.wuyou.robot.game.landlords.common.GameEventManager;
 import pers.wuyou.robot.game.landlords.entity.Player;
@@ -8,10 +11,14 @@ import pers.wuyou.robot.game.landlords.entity.Room;
 import pers.wuyou.robot.game.landlords.enums.GameEventCode;
 import pers.wuyou.robot.game.landlords.exception.LandLordsException;
 import pers.wuyou.robot.game.landlords.exception.PlayerException;
+import pers.wuyou.robot.util.RobotUtil;
 import pers.wuyou.robot.util.SenderUtil;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -19,6 +26,10 @@ import java.util.*;
  */
 @Component
 public class GameManager {
+    /**
+     * 游戏名
+     */
+    public final static String GAME_NAME = "landlords";
     /**
      * 房间列表
      */
@@ -32,10 +43,17 @@ public class GameManager {
      */
     public static final int MAX_PLAYER_COUNT = 3;
     /**
+     * 是不是用Jar文件运行
+     */
+    public static final boolean RUNNING_IN_JAR;
+    /**
+     * 临时路径
+     */
+    public static final String TEMP_PATH;
+    /**
      * 用户携带数据
      */
     private static final Map<String, Map<String, Object>> PLAYER_DATA_MAP = new HashMap<>();
-
 
     static {
         // 检查当前电脑是否安装了python
@@ -60,7 +78,26 @@ public class GameManager {
                 throw new LandLordsException("当前电脑没有python环境,请先安装或配置python环境后再运行");
             }
         }
+        URL url = GameManager.class.getResource("");
+        String protocol = url != null ? url.getProtocol() : null;
+        RUNNING_IN_JAR = "jar".equals(protocol);
+        TEMP_PATH = RobotUtil.TEMP_PATH + GAME_NAME + File.separator;
+    }
 
+    GameManager() {
+        try {
+            Resource resource = new ClassPathResource(File.separator + GAME_NAME);
+            if (!resource.exists()) {
+                throw new LandLordsException("扑克牌资源文件未找到,请确认项目文件是否完整");
+            }
+            final File file = resource.getFile();
+            final File temp = new File(TEMP_PATH);
+            FileUtil.copyFilesFromDir(file, temp, true);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
+        }
     }
 
     public static void reset(String group) {

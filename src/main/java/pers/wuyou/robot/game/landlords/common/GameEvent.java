@@ -10,6 +10,7 @@ import java.util.Map;
 public interface GameEvent {
     /**
      * 执行游戏事件
+     *
      * @param room 游戏房间
      * @param data 携带数据
      */

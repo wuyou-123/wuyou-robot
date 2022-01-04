@@ -2,6 +2,7 @@ package pers.wuyou.robot.game.landlords.helper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import pers.wuyou.robot.game.landlords.GameManager;
 import pers.wuyou.robot.game.landlords.entity.Player;
 import pers.wuyou.robot.game.landlords.entity.Poker;
 import pers.wuyou.robot.game.landlords.entity.PokerSell;
@@ -33,7 +34,12 @@ public class PokerHelper {
     private static final String SEPARATOR = File.separator;
 
     static {
-        POKER_PATH = RobotUtil.PROJECT_PATH + SEPARATOR + "landlords" + SEPARATOR;
+        if (GameManager.RUNNING_IN_JAR) {
+            POKER_PATH = RobotUtil.TEMP_PATH + GameManager.GAME_NAME + SEPARATOR;
+        } else {
+            POKER_PATH = RobotUtil.PROJECT_PATH + GameManager.GAME_NAME + SEPARATOR;
+
+        }
         PokerLevel[] pokerLevels = PokerLevel.values();
         PokerType[] pokerTypes = PokerType.values();
 
@@ -493,6 +499,9 @@ public class PokerHelper {
     }
 
     public static String getPoker(List<Poker> pokers) {
+        if (pokers.size() == 0) {
+            return "";
+        }
         try {
             List<String> pokerList = new ArrayList<>();
             for (Poker poker : pokers) {
@@ -518,6 +527,11 @@ public class PokerHelper {
                         b = "e";
                 }
                 pokerList.add((b + a).toLowerCase(Locale.ROOT).replace("10", "0"));
+            }
+
+            if (pokerList.size() == 1) {
+                final String poker = pokerList.get(0);
+                return CatUtil.getImage(GameManager.TEMP_PATH + poker + ".jpg").toString();
             }
             char[] sort = new char[]{'x', 's', '2', '1', 'k', 'q', 'j', '0', '9', '8', '7', '6', '5', '4', '3'};
             char[] sort2 = new char[]{'e', 'a', 'b', 'c', 'd'};
@@ -547,7 +561,7 @@ public class PokerHelper {
             });
             String pokerStr = pokerList.toString().replace(" ", "").replace(",", "_");
             pokerStr = pokerStr.substring(1, pokerStr.length() - 1);
-            File pokerDir = new File(POKER_PATH + "poker_comp" + SEPARATOR);
+            File pokerDir = new File(GameManager.TEMP_PATH + "poker_comp");
             if (!pokerDir.exists()) {
                 if (pokerDir.mkdirs()) {
                     log.info("创建扑克牌文件夹成功");
@@ -559,8 +573,8 @@ public class PokerHelper {
             }
             List<String> command = new ArrayList<>();
             command.add("python");
-            command.add(POKER_PATH + "generatePoker.py");
-            command.add(POKER_PATH + "poker" + SEPARATOR);
+            command.add(GameManager.TEMP_PATH + "generatePoker.py");
+            command.add(GameManager.TEMP_PATH);
             command.add(pokerFile.toString());
             command.addAll(pokerList);
             Process proc = Runtime.getRuntime().exec(command.toArray(new String[]{}));

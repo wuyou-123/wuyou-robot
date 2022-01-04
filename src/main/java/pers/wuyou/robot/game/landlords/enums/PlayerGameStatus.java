@@ -5,6 +5,7 @@ import lombok.Getter;
 
 /**
  * 玩家游戏状态
+ *
  * @author wuyou
  */
 @Getter

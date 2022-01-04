@@ -18,6 +18,7 @@ import net.mamoe.mirai.event.events.MemberLeaveEvent;
 import org.springframework.context.ConfigurableApplicationContext;
 import pers.wuyou.robot.entity.AccountInfo;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -34,6 +35,10 @@ public class RobotUtil {
      * 项目路径
      */
     public static final String PROJECT_PATH;
+    /**
+     * 临时路径
+     */
+    public static final String TEMP_PATH;
     /**
      * 线程池
      */
@@ -64,7 +69,8 @@ public class RobotUtil {
     public static BotSender sender;
 
     static {
-        PROJECT_PATH = System.getProperty("user.dir");
+        PROJECT_PATH = System.getProperty("user.dir") + File.separator;
+        TEMP_PATH = System.getProperty("java.io.tmpdir") + File.separator;
         BOOT_MAP = new HashMap<>();
         MEMBER_INDEX = new HashMap<>();
         ADMINISTRATOR = new ArrayList<>();

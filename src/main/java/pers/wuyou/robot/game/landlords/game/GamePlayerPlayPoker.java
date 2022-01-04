@@ -60,24 +60,20 @@ public class GamePlayerPlayPoker implements GameEvent {
         }
         Player next = player.getNext();
 
-        room.setLastPlayer(player);
         room.setLastPlayPoker(currentPokerShell);
-        room.setCurrentPlayer(next);
-
         player.getPokers().removeAll(currentPokerShell.getSellPokers());
         NotifyUtil.notifyPlayPoker(player);
-        if (!player.getPokers().isEmpty()) {
-            NotifyUtil.notify(next, NotifyType.NOTIFY_PLAYER_PLAY, 2);
-            NotifyUtil.notifyPlayerPokerCount(next);
-        }
-
         if (player.getPokers().isEmpty()) {
             // 游戏结束
             NotifyUtil.notifyPlayWin(player);
             room.gameEnd();
             room.setStatus(RoomStatus.NO_START);
         } else {
+            room.setLastPlayer(player);
+            room.setCurrentPlayer(next);
             // 通知下一位玩家出牌
+            NotifyUtil.notify(next, NotifyType.NOTIFY_PLAYER_PLAY, 2);
+            NotifyUtil.notifyPlayerPokerCount(next);
             room.setCurrentPlayer(next);
             NotifyUtil.notifyPlayerPlayPoker(next);
             List<PokerSell> sells = PokerHelper.validSells(PokerHelper.checkPokerType(room.getLastSellPokers()), next.getPokers());
