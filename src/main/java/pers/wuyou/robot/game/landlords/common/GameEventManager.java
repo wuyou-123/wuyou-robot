@@ -7,7 +7,7 @@ import pers.wuyou.robot.game.landlords.entity.Player;
 import pers.wuyou.robot.game.landlords.entity.Room;
 import pers.wuyou.robot.game.landlords.enums.GameEventCode;
 import pers.wuyou.robot.game.landlords.util.NotifyUtil;
-import pers.wuyou.robot.util.RobotUtil;
+import pers.wuyou.robot.common.RobotCore;
 import pers.wuyou.robot.util.SenderUtil;
 
 import java.util.HashMap;
@@ -44,7 +44,7 @@ public class GameEventManager {
 
     public static void call(GameEventCode code, Room room, Map<String, Object> data) {
         log.info(String.format("斗地主 -- 房间%s --- %s", room == null ? "" : room.getId(), code.getDesc()));
-        RobotUtil.THREAD_POOL.execute(() -> {
+        RobotCore.THREAD_POOL.execute(() -> {
             try {
                 ThreadUtil.sleep(200);
                 get(code).call(room, data);
@@ -54,7 +54,7 @@ public class GameEventManager {
                 final String messageStr = "群主已禁止群成员发起临时会话";
                 String message = e.getMessage();
                 if (message != null && message.contains(messageStr)) {
-                    message = "群主已禁止群成员发起临时会话, 您可以添加机器人为好友后继续操作, 当前机器人账号: " + RobotUtil.getDefaultBotCode();
+                    message = "群主已禁止群成员发起临时会话, 您可以添加机器人为好友后继续操作, 当前机器人账号: " + RobotCore.getDefaultBotCode();
                 }
                 SenderUtil.sendGroupMsg(groupCode, message);
                 String accountCode = data.get(Constant.ACCOUNT_CODE).toString();

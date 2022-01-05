@@ -7,6 +7,7 @@ import love.forte.simbot.api.sender.Sender;
 import love.forte.simbot.bot.BotManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import pers.wuyou.robot.common.RobotCore;
 
 import java.util.NoSuchElementException;
 
@@ -66,7 +67,7 @@ public class SenderUtil {
                 default:
             }
         } catch (NoSuchElementException e) {
-            sendPrivateMsg(RobotUtil.ADMINISTRATOR.get(0), String.format("尝试给%s[%s]发送消息: %s 失败", type, code, message));
+            sendPrivateMsg(RobotCore.ADMINISTRATOR.get(0), String.format("尝试给%s[%s]发送消息: %s 失败", type, code, message));
         }
 
     }

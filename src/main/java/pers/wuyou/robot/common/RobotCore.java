@@ -1,4 +1,4 @@
-package pers.wuyou.robot.util;
+package pers.wuyou.robot.common;
 
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Listen;
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @SuppressWarnings("unused")
-public class RobotUtil {
+public class RobotCore {
     /**
      * 项目路径
      */
@@ -81,11 +81,11 @@ public class RobotUtil {
         });
     }
 
-    private RobotUtil() {
+    private RobotCore() {
     }
 
     private static synchronized void setApplicationContext(ConfigurableApplicationContext applicationContext) {
-        RobotUtil.applicationContext = applicationContext;
+        RobotCore.applicationContext = applicationContext;
         botManager = applicationContext.getBean(BotManager.class);
         sender = botManager.getDefaultBot().getSender();
         boolean isDebugEnabled = log.isDebugEnabled();

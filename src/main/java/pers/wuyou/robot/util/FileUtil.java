@@ -1,6 +1,7 @@
 package pers.wuyou.robot.util;
 
 import org.springframework.core.io.Resource;
+import pers.wuyou.robot.common.RobotCore;
 
 import java.io.*;
 
@@ -10,8 +11,8 @@ import java.io.*;
 public class FileUtil {
 
     public static void saveTempFile(InputStream is, String fileName, String folderName) throws IOException {
-        File tempDir = new File(RobotUtil.TEMP_PATH + folderName + File.separator);
-        File temp = new File(RobotUtil.TEMP_PATH + folderName + File.separator + fileName);
+        File tempDir = new File(RobotCore.TEMP_PATH + folderName + File.separator);
+        File temp = new File(RobotCore.TEMP_PATH + folderName + File.separator + fileName);
         if (!tempDir.exists() && !tempDir.mkdirs()) {
             throw new IOException("Destination '" + tempDir + "' directory cannot be created");
         }

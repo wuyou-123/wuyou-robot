@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import pers.wuyou.robot.annotation.ContextType;
 import pers.wuyou.robot.annotation.RobotListen;
 import pers.wuyou.robot.util.CatUtil;
-import pers.wuyou.robot.util.RobotUtil;
 import pers.wuyou.robot.util.SenderUtil;
 import pers.wuyou.robot.util.StringUtil;
 
@@ -41,7 +40,7 @@ public class RobotListenerInterceptor implements ListenerInterceptor {
             listenerContext.instant(ContextType.AT_LIST, CatUtil.getAtList(groupMsg));
             listenerContext.instant(ContextType.AT_SET, CatUtil.getAts(groupMsg));
             if (!groupMsg.getAccountInfo().getAnonymous()) {
-                final GroupMemberInfo groupMemberInfo = RobotUtil.getter().getMemberInfo(groupMsg);
+                final GroupMemberInfo groupMemberInfo = RobotCore.getter().getMemberInfo(groupMsg);
                 listenerContext.instant(ContextType.MEMBER, groupMemberInfo);
                 if (annotation != null && groupMemberInfo.getPermission().getLevel() < annotation.permissions().getLevel()) {
                     SenderUtil.sendGroupMsg(groupMsg, annotation.noPermissionTip());

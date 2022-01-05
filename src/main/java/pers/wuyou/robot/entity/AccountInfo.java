@@ -2,7 +2,7 @@ package pers.wuyou.robot.entity;
 
 import lombok.Getter;
 import love.forte.simbot.api.message.results.GroupMemberInfo;
-import pers.wuyou.robot.util.RobotUtil;
+import pers.wuyou.robot.common.RobotCore;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +23,7 @@ public class AccountInfo {
             return;
         }
         this.code = code;
-        GroupMemberInfo memberInfo = RobotUtil.getter().getMemberInfo(group, code);
+        GroupMemberInfo memberInfo = RobotCore.getter().getMemberInfo(group, code);
         this.nickname = memberInfo.getAccountNickname();
         this.avatarUrl = memberInfo.getAccountAvatar();
         this.groupList = new ArrayList<>(Collections.singleton(group));

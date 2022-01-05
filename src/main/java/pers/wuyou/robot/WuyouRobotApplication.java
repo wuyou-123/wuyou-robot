@@ -4,7 +4,7 @@ import love.forte.simbot.spring.autoconfigure.EnableSimbot;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import pers.wuyou.robot.util.RobotUtil;
+import pers.wuyou.robot.common.RobotCore;
 
 /**
  * @author wuyou
@@ -15,7 +15,7 @@ public class WuyouRobotApplication {
 
     public static void main(String[] args) {
         final ConfigurableApplicationContext context = SpringApplication.run(WuyouRobotApplication.class, args);
-        RobotUtil.initRobot(context);
+        RobotCore.initRobot(context);
     }
 
 }

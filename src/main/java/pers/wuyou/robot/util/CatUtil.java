@@ -15,6 +15,7 @@ import love.forte.simbot.bot.BotManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pers.wuyou.robot.common.Constant;
+import pers.wuyou.robot.common.RobotCore;
 
 import java.util.*;
 
@@ -71,7 +72,7 @@ public class CatUtil {
      */
     public static boolean atBot(MsgGet msgget) {
         if (msgget instanceof GroupMsg) {
-            return getAts((GroupMsg) msgget).contains(RobotUtil.getDefaultBotCode());
+            return getAts((GroupMsg) msgget).contains(RobotCore.getDefaultBotCode());
         } else {
             return false;
         }
@@ -83,14 +84,14 @@ public class CatUtil {
      * @param msg 消息字符串
      */
     public static boolean atBot(String msg) {
-        return getAts(msg).contains(RobotUtil.getDefaultBotCode());
+        return getAts(msg).contains(RobotCore.getDefaultBotCode());
     }
 
     /**
      * 获取艾特bot的猫猫码
      */
     public static String atBot() {
-        return CatUtil.at(RobotUtil.getDefaultBotCode());
+        return CatUtil.at(RobotCore.getDefaultBotCode());
     }
 
     /**

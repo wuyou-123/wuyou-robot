@@ -2,6 +2,7 @@ package pers.wuyou.robot.game.landlords;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import pers.wuyou.robot.common.RobotCore;
 import pers.wuyou.robot.game.landlords.common.GameEventManager;
 import pers.wuyou.robot.game.landlords.entity.Player;
 import pers.wuyou.robot.game.landlords.entity.Room;
@@ -9,7 +10,6 @@ import pers.wuyou.robot.game.landlords.enums.GameEventCode;
 import pers.wuyou.robot.game.landlords.exception.LandLordsException;
 import pers.wuyou.robot.game.landlords.exception.PlayerException;
 import pers.wuyou.robot.game.landlords.helper.PokerHelper;
-import pers.wuyou.robot.util.RobotUtil;
 import pers.wuyou.robot.util.SenderUtil;
 
 import java.io.BufferedReader;
@@ -78,7 +78,7 @@ public class GameManager {
         URL url = GameManager.class.getResource("");
         String protocol = url != null ? url.getProtocol() : null;
         RUNNING_IN_JAR = "jar".equals(protocol);
-        TEMP_PATH = RobotUtil.TEMP_PATH + GAME_NAME + File.separator;
+        TEMP_PATH = RobotCore.TEMP_PATH + GAME_NAME + File.separator;
     }
 
     GameManager() {
