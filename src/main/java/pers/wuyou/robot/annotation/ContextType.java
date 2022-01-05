@@ -1,12 +1,14 @@
 package pers.wuyou.robot.annotation;
 
 import love.forte.simbot.api.message.MessageContent;
+import love.forte.simbot.api.message.assists.FlagContent;
 import love.forte.simbot.api.message.containers.AccountInfo;
 import love.forte.simbot.api.message.containers.BotInfo;
 import love.forte.simbot.api.message.containers.GroupCodeContainer;
 import love.forte.simbot.api.message.containers.GroupInfo;
 import love.forte.simbot.api.message.events.MessageGet;
 import love.forte.simbot.api.sender.Getter;
+import pers.wuyou.robot.entity.Message;
 import pers.wuyou.robot.util.CatUtil;
 
 /**
@@ -122,4 +124,22 @@ public @interface ContextType {
      * value: {@link Getter#getMemberInfo(GroupCodeContainer)}
      */
     String MEMBER = "member";
+    /**
+     * 获取消息的flagId
+     * <p>
+     * value: {@link FlagContent#getId()}
+     */
+    String FLAG = "flag";
+    /**
+     * 获取消息实例
+     * <p>
+     * value: {@link Message}
+     */
+    String MESSAGE_ENTITY = "messageEntity";
+    /**
+     * 获取消息id
+     * <p>
+     * value: {@link MessageGet#getId()}
+     */
+    String ID = "id";
 }

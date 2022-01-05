@@ -16,7 +16,7 @@ spring:
       username: ${MYSQL_USERNAME:root}
       password: ${MYSQL_PASSWORD}
       # 由于配置了转发,所以这里写转发后的ip和端口号
-      url: jdbc:mysql://127.0.0.1:${SSH_PORT}/useless-robot?useUnicode=true&characterEncoding=UTF8&useSSL=false&serverTimezone=Asia/Shanghai
+      url: jdbc:mysql://127.0.0.1:${SSH_PORT}/${DATABASE}?useUnicode=true&characterEncoding=UTF8&useSSL=false&serverTimezone=Asia/Shanghai
       driver-class-name: com.mysql.cj.jdbc.Driver
       db-type: com.alibaba.druid.pool.DruidDataSource
       initialSize: 5
@@ -55,4 +55,4 @@ ssh:
 logging:
   level:
     ROOT: INFO
-    pers.wuyou.robot: DEBUG
+#    pers.wuyou.robot: DEBUG

@@ -1,6 +1,7 @@
 package pers.wuyou.robot.game.landlords.helper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -18,6 +19,7 @@ import pers.wuyou.robot.util.CatUtil;
 import pers.wuyou.robot.util.FileUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -58,26 +60,37 @@ public class PokerHelper {
         }
     }
 
-    public static void init(){
+    public static void init() {
         try {
-            ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            Resource[] resources = resolver.getResources("classpath:**/generatePoker.py");
-            if (resources.length == 0) {
-                throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
-            }
-            FileUtil.saveResourceToTempDirectory(resources[0], GameManager.GAME_NAME);
-            Resource[] jpgResources = resolver.getResources("classpath:**/poker/*.jpg");
-            if (jpgResources.length == 0) {
-                throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
-            }
-            for (Resource jpgResource : jpgResources) {
-                FileUtil.saveResourceToTempDirectory(jpgResource, GameManager.GAME_NAME);
+            if (GameManager.RUNNING_IN_JAR) {
+                ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+                Resource[] resources = resolver.getResources("classpath:**/generatePoker.py");
+                if (resources.length == 0) {
+                    throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
+                }
+                FileUtil.saveResourceToTempDirectory(resources[0], GameManager.GAME_NAME);
+                Resource[] jpgResources = resolver.getResources("classpath:**/poker/*.jpg");
+                if (jpgResources.length == 0) {
+                    throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
+                }
+                for (Resource jpgResource : jpgResources) {
+                    FileUtil.saveResourceToTempDirectory(jpgResource, GameManager.GAME_NAME);
+                }
+            } else {
+                Resource resource = new ClassPathResource(File.separator + GameManager.GAME_NAME);
+                if (!resource.exists()) {
+                    throw new LandLordsException("扑克牌资源文件未找到,请确认项目文件是否完整");
+                }
+                final File file = resource.getFile();
+                final File temp = new File(GameManager.TEMP_PATH);
+                cn.hutool.core.io.FileUtil.copyFilesFromDir(file, temp, true);
             }
         } catch (Exception e) {
             e.printStackTrace();
             throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
         }
     }
+
     public static void sortPoker(List<Poker> pokers) {
         pokers.sort(POKER_COMPARATOR);
     }
@@ -522,11 +535,10 @@ public class PokerHelper {
         try {
             List<String> pokerList = new ArrayList<>();
             for (Poker poker : pokers) {
-                String a = poker.getLevel().getName()
+                String b, a = poker.getLevel().getName()
                         .replace("A", "1")
                         .replace("小王", "s")
                         .replace("大王", "x");
-                String b;
                 switch (poker.getType().toString()) {
                     case "SPADE":
                         b = "a";
@@ -545,15 +557,12 @@ public class PokerHelper {
                 }
                 pokerList.add((b + a).toLowerCase(Locale.ROOT).replace("10", "0"));
             }
-
             if (pokerList.size() == 1) {
-                final String poker = pokerList.get(0);
-                return CatUtil.getImage(GameManager.TEMP_PATH + poker + ".jpg").toString();
+                return CatUtil.getImage(GameManager.TEMP_PATH + pokerList.get(0) + ".jpg").toString();
             }
             char[] sort = new char[]{'x', 's', '2', '1', 'k', 'q', 'j', '0', '9', '8', '7', '6', '5', '4', '3'};
             char[] sort2 = new char[]{'e', 'a', 'b', 'c', 'd'};
             pokerList.sort((a, b) -> {
-
                 int aIndex = -1;
                 int bIndex = -1;
                 for (int i = 0; i < sort.length; i++) {
@@ -579,10 +588,8 @@ public class PokerHelper {
             String pokerStr = pokerList.toString().replace(" ", "").replace(",", "_");
             pokerStr = pokerStr.substring(1, pokerStr.length() - 1);
             File pokerDir = new File(GameManager.TEMP_PATH + "poker_comp");
-            if (!pokerDir.exists()) {
-                if (pokerDir.mkdirs()) {
-                    log.info("创建扑克牌文件夹成功");
-                }
+            if (!pokerDir.exists() && !pokerDir.mkdirs()) {
+                throw new IOException("Destination '" + pokerDir + "' directory cannot be created");
             }
             File pokerFile = new File(pokerDir + SEPARATOR + pokerStr + ".jpg");
             if (pokerFile.exists()) {
@@ -600,7 +607,6 @@ public class PokerHelper {
         } catch (Exception e) {
             throw new PokerException("生成扑克牌失败! 请联系管理员排查问题");
         }
-
     }
 
     public static Character[] parsePoker(String message) {

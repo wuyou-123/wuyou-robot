@@ -1,10 +1,6 @@
 package pers.wuyou.robot.common;
 
 import lombok.extern.slf4j.Slf4j;
-import love.forte.simbot.annotation.Listen;
-import love.forte.simbot.api.message.events.GroupMemberIncrease;
-import love.forte.simbot.api.message.events.GroupMemberReduce;
-import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.api.message.results.GroupMemberInfo;
 import love.forte.simbot.api.message.results.SimpleGroupInfo;
 import love.forte.simbot.api.sender.BotSender;
@@ -50,7 +46,7 @@ public class RobotCore {
     /**
      * 缓存群开关
      */
-    private static final Map<String, Boolean> BOOT_MAP;
+    public static final Map<String, Boolean> BOOT_MAP;
     /**
      * 群成员缓存
      */
@@ -129,8 +125,8 @@ public class RobotCore {
     private static synchronized void removeMemberIndex(String code, String group) {
         AccountInfo accountInfo = MEMBER_INDEX.get(code);
         if (accountInfo != null) {
-            accountInfo.getGroupList().remove(group);
-            if (accountInfo.getGroupList().isEmpty()) {
+            accountInfo.getGroupSet().remove(group);
+            if (accountInfo.getGroupSet().isEmpty()) {
                 MEMBER_INDEX.remove(code);
             }
         }
@@ -152,8 +148,8 @@ public class RobotCore {
         return sender.SETTER;
     }
 
-    public static Boolean isBotAdministrator(String uin) {
-        return ADMINISTRATOR.contains(uin);
+    public static Boolean isBotAdministrator(String accountCode) {
+        return ADMINISTRATOR.contains(accountCode);
     }
 
     public static String getDefaultBotCode() {
@@ -190,8 +186,8 @@ public class RobotCore {
                 Iterator<Map.Entry<String, AccountInfo>> ite = MEMBER_INDEX.entrySet().iterator();
                 while (ite.hasNext()) {
                     Map.Entry<String, AccountInfo> m = ite.next();
-                    m.getValue().getGroupList().remove(groupCode);
-                    if (m.getValue().getGroupList().isEmpty()) {
+                    m.getValue().getGroupSet().remove(groupCode);
+                    if (m.getValue().getGroupSet().isEmpty()) {
                         // 如果成员没有任何群关联则删除这个成员缓存
                         ite.remove();
                     }
@@ -202,29 +198,4 @@ public class RobotCore {
         });
     }
 
-    /**
-     * 监听群员变动,用于更新群成员索引
-     *
-     * @param msg msgGet
-     */
-    @Listen(GroupMemberIncrease.class)
-    @Listen(GroupMemberReduce.class)
-    @SuppressWarnings("unused")
-    public void memberIndexListener(MsgGet msg) {
-        if (msg instanceof GroupMemberIncrease) {
-            if (((GroupMemberIncrease) msg).isBot()) {
-                return;
-            }
-            String accountCode = ((GroupMemberIncrease) msg).getBeOperatorInfo().getAccountCode();
-            String groupCode = ((GroupMemberIncrease) msg).getGroupInfo().getGroupCode();
-            addMemberIndex(accountCode, groupCode);
-        } else if (msg instanceof GroupMemberReduce) {
-            if (((GroupMemberReduce) msg).isBot()) {
-                return;
-            }
-            String accountCode = ((GroupMemberReduce) msg).getBeOperatorInfo().getAccountCode();
-            String groupCode = ((GroupMemberReduce) msg).getGroupInfo().getGroupCode();
-            removeMemberIndex(accountCode, groupCode);
-        }
-    }
 }

@@ -4,9 +4,9 @@ import lombok.Getter;
 import love.forte.simbot.api.message.results.GroupMemberInfo;
 import pers.wuyou.robot.common.RobotCore;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author wuyou
@@ -16,7 +16,7 @@ public class AccountInfo {
     private String code;
     private String nickname;
     private String avatarUrl;
-    private List<String> groupList;
+    private Set<String> groupSet;
 
     public AccountInfo(String code, String group) {
         if (code == null || group == null) {
@@ -26,10 +26,10 @@ public class AccountInfo {
         GroupMemberInfo memberInfo = RobotCore.getter().getMemberInfo(group, code);
         this.nickname = memberInfo.getAccountNickname();
         this.avatarUrl = memberInfo.getAccountAvatar();
-        this.groupList = new ArrayList<>(Collections.singleton(group));
+        this.groupSet = new HashSet<>(Collections.singleton(group));
     }
 
     public void addGroup(String group) {
-        this.groupList.add(group);
+        this.groupSet.add(group);
     }
 }
