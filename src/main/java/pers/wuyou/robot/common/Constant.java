@@ -5,4 +5,5 @@ package pers.wuyou.robot.common;
  */
 public interface Constant {
     String AT = "at";
+    String CORE = "core";
 }
