@@ -1,6 +1,9 @@
 package pers.wuyou.robot.game.landlords.helper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Component;
 import pers.wuyou.robot.game.landlords.GameManager;
 import pers.wuyou.robot.game.landlords.entity.Player;
@@ -9,9 +12,10 @@ import pers.wuyou.robot.game.landlords.entity.PokerSell;
 import pers.wuyou.robot.game.landlords.enums.PokerLevel;
 import pers.wuyou.robot.game.landlords.enums.PokerType;
 import pers.wuyou.robot.game.landlords.enums.SellType;
+import pers.wuyou.robot.game.landlords.exception.LandLordsException;
 import pers.wuyou.robot.game.landlords.exception.PokerException;
 import pers.wuyou.robot.util.CatUtil;
-import pers.wuyou.robot.util.RobotUtil;
+import pers.wuyou.robot.util.FileUtil;
 
 import java.io.File;
 import java.util.*;
@@ -30,16 +34,9 @@ public class PokerHelper {
      */
     private static final List<Poker> BASE_POKERS = new ArrayList<>(54);
     private static final Comparator<Poker> POKER_COMPARATOR = Comparator.comparingInt(o -> o.getLevel().getLevel());
-    private static final String POKER_PATH;
     private static final String SEPARATOR = File.separator;
 
     static {
-        if (GameManager.RUNNING_IN_JAR) {
-            POKER_PATH = RobotUtil.TEMP_PATH + GameManager.GAME_NAME + SEPARATOR;
-        } else {
-            POKER_PATH = RobotUtil.PROJECT_PATH + GameManager.GAME_NAME + SEPARATOR;
-
-        }
         PokerLevel[] pokerLevels = PokerLevel.values();
         PokerType[] pokerTypes = PokerType.values();
 
@@ -61,6 +58,26 @@ public class PokerHelper {
         }
     }
 
+    public static void init(){
+        try {
+            ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            Resource[] resources = resolver.getResources("classpath:**/generatePoker.py");
+            if (resources.length == 0) {
+                throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
+            }
+            FileUtil.saveResourceToTempDirectory(resources[0], GameManager.GAME_NAME);
+            Resource[] jpgResources = resolver.getResources("classpath:**/poker/*.jpg");
+            if (jpgResources.length == 0) {
+                throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
+            }
+            for (Resource jpgResource : jpgResources) {
+                FileUtil.saveResourceToTempDirectory(jpgResource, GameManager.GAME_NAME);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
+        }
+    }
     public static void sortPoker(List<Poker> pokers) {
         pokers.sort(POKER_COMPARATOR);
     }

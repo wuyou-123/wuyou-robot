@@ -1,9 +1,6 @@
 package pers.wuyou.robot.game.landlords;
 
-import cn.hutool.core.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import pers.wuyou.robot.game.landlords.common.GameEventManager;
 import pers.wuyou.robot.game.landlords.entity.Player;
@@ -11,12 +8,12 @@ import pers.wuyou.robot.game.landlords.entity.Room;
 import pers.wuyou.robot.game.landlords.enums.GameEventCode;
 import pers.wuyou.robot.game.landlords.exception.LandLordsException;
 import pers.wuyou.robot.game.landlords.exception.PlayerException;
+import pers.wuyou.robot.game.landlords.helper.PokerHelper;
 import pers.wuyou.robot.util.RobotUtil;
 import pers.wuyou.robot.util.SenderUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
@@ -85,19 +82,7 @@ public class GameManager {
     }
 
     GameManager() {
-        try {
-            Resource resource = new ClassPathResource(File.separator + GAME_NAME);
-            if (!resource.exists()) {
-                throw new LandLordsException("扑克牌资源文件未找到,请确认项目文件是否完整");
-            }
-            final File file = resource.getFile();
-            final File temp = new File(TEMP_PATH);
-            FileUtil.copyFilesFromDir(file, temp, true);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
-        }
+        PokerHelper.init();
     }
 
     public static void reset(String group) {
