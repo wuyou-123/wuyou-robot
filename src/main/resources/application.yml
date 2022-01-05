@@ -11,6 +11,47 @@ simbot:
 spring:
   profiles:
     active: test
+  datasource: #数据库链接相关配置
+    druid:
+      username: ${MYSQL_USERNAME:root}
+      password: ${MYSQL_PASSWORD}
+      # 由于配置了转发,所以这里写转发后的ip和端口号
+      url: jdbc:mysql://127.0.0.1:${SSH_PORT}/useless-robot?useUnicode=true&characterEncoding=UTF8&useSSL=false&serverTimezone=Asia/Shanghai
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      db-type: com.alibaba.druid.pool.DruidDataSource
+      initialSize: 5
+      minIdle: 5
+      maxActive: 20
+      maxWait: 60000
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 1
+      filter:
+        wall:
+          config:
+            show-allow: true
+
+mybatis-plus:
+  mapper-locations: classpath:**/mapper/xml/*Mapper.xml, ./mapper/*.xml
+  configuration:
+    # 显示sql
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    banner: false
+
+# 通过ssh跳板机链接数据库
+ssh:
+  host: ${SSH_HOST}
+  port: 22
+  username: ${SSH_USERNAME:root}
+  password: ${SSH_PASSWORD}
+  forward:
+    from_host: 127.0.0.1
+    from_port: ${SSH_PORT}
+    # 数据库内网ip
+    to_host: ${MYSQL_HOST}
+    to_port: ${MYSQL_PORT:3306}
+
 logging:
   level:
     ROOT: INFO
