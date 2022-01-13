@@ -6,7 +6,7 @@ import pers.wuyou.robot.game.landlords.GameManager;
 import pers.wuyou.robot.game.landlords.enums.PlayerGameStatus;
 import pers.wuyou.robot.game.landlords.enums.PlayerType;
 import pers.wuyou.robot.game.landlords.enums.RoomStatus;
-import pers.wuyou.robot.game.landlords.exception.PlayerException;
+import pers.wuyou.robot.game.landlords.exception.LandLordsException;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -53,6 +53,8 @@ public class Room {
      */
     private List<Poker> landlordPokers = new ArrayList<>(3);
 
+    private static final String PLAYER_NOT_IN_ROOM="玩家不在房间中";
+
     public Room(@NotNull String id) {
         this.id = id;
         this.status = RoomStatus.PLAYER_READY;
@@ -66,11 +68,11 @@ public class Room {
     }
 
     public void setCurrentPlayer(Player player) {
-        final int currentPlayerIndex = playerList.indexOf(player);
-        if (currentPlayerIndex == -1) {
-            throw new PlayerException("玩家不在房间中");
+        final int playerIndex = playerList.indexOf(player);
+        if (playerIndex == -1) {
+            throw new LandLordsException(PLAYER_NOT_IN_ROOM);
         }
-        this.currentPlayerIndex = currentPlayerIndex;
+        this.currentPlayerIndex = playerIndex;
     }
 
     public Player getLastPlayer() {
@@ -81,11 +83,11 @@ public class Room {
     }
 
     public void setLastPlayer(Player player) {
-        final int lastPlayPlayerIndex = playerList.indexOf(player);
-        if (lastPlayPlayerIndex == -1) {
-            throw new PlayerException("玩家不在房间中");
+        final int playerIndex = playerList.indexOf(player);
+        if (playerIndex == -1) {
+            throw new LandLordsException(PLAYER_NOT_IN_ROOM);
         }
-        this.lastPlayPlayerIndex = lastPlayPlayerIndex;
+        this.lastPlayPlayerIndex = playerIndex;
     }
 
     public void addPlayer(Player player) {
@@ -134,7 +136,7 @@ public class Room {
     public void playerExit(Player player) {
         final int playerIndex = playerList.indexOf(player);
         if (playerIndex == -1) {
-            throw new PlayerException("玩家不在房间中");
+            throw new LandLordsException(PLAYER_NOT_IN_ROOM);
         }
         playerList.remove(player);
         reset();

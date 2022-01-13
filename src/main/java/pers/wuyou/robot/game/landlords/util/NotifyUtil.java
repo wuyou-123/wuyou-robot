@@ -2,6 +2,7 @@ package pers.wuyou.robot.game.landlords.util;
 
 import cn.hutool.core.thread.ThreadUtil;
 import lombok.Setter;
+import pers.wuyou.robot.core.util.SenderUtil;
 import pers.wuyou.robot.game.landlords.GameManager;
 import pers.wuyou.robot.game.landlords.entity.Player;
 import pers.wuyou.robot.game.landlords.entity.Poker;
@@ -11,7 +12,6 @@ import pers.wuyou.robot.game.landlords.enums.NotifyType;
 import pers.wuyou.robot.game.landlords.enums.PlayerGameStatus;
 import pers.wuyou.robot.game.landlords.enums.RoomStatus;
 import pers.wuyou.robot.game.landlords.helper.PokerHelper;
-import pers.wuyou.robot.util.SenderUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,7 +43,6 @@ public class NotifyUtil {
     public static void notifyPlayerPlayPokerInvalid(Player player) {
         sendPrivateMsg(player, NotifyType.PLAYER_PLAY_INVALID);
         notifyPlayerPlayPoker(player);
-//        player.setStatus(PlayerGameStatus.CHOOSE);
     }
 
     /**
@@ -84,7 +83,6 @@ public class NotifyUtil {
     public static void notifyPlayerPlayPokerLess(Player player) {
         sendPrivateMsg(player, NotifyType.PLAYER_PLAY_LESS);
         notifyPlayerPlayPoker(player);
-//        player.setStatus(PlayerGameStatus.CHOOSE);
     }
 
     /**
@@ -104,7 +102,6 @@ public class NotifyUtil {
         ), true);
 
         notifyPlayerPlayPoker(player);
-//        player.setStatus(PlayerGameStatus.CHOOSE);
 
     }
 
@@ -209,7 +206,7 @@ public class NotifyUtil {
         final Player pre = player.getPre();
         final Player next = player.getNext();
         sendPrivateMsg(player,
-                String.format("上家 %s [%s](剩余%s张)\n下家 %s [%s](剩余%s张)",
+                String.format("上家 %s [%s](剩余%s张)%n下家 %s [%s](剩余%s张)",
                         pre.getName(), pre.getType().getName(), pre.getPokers().size(),
                         next.getName(), next.getType().getName(), next.getPokers().size()
                 )
@@ -254,7 +251,7 @@ public class NotifyUtil {
     public static void notifyPlayerStatus(Player player) {
         final Room room = player.getRoom();
         final StringBuilder sb = new StringBuilder();
-        sb.append(String.format("当前房间内有%s人\n", room.getPlayerList().size()));
+        sb.append(String.format("当前房间内有%s人%n", room.getPlayerList().size()));
         for (Player p : room.getPlayerList()) {
             sb.append(p).append(" ").append(p.getStatus().getMsg()).append("\n");
         }

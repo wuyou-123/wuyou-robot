@@ -6,7 +6,7 @@ import love.forte.simbot.listener.ListenerInterceptContext;
 import love.forte.simbot.listener.ListenerInterceptor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
-import pers.wuyou.robot.annotation.ContextType;
+import pers.wuyou.robot.core.annotation.ContextType;
 import pers.wuyou.robot.game.landlords.GameManager;
 import pers.wuyou.robot.game.landlords.entity.Player;
 

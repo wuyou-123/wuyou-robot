@@ -2,15 +2,15 @@ package pers.wuyou.robot.game.landlords.common;
 
 import cn.hutool.core.thread.ThreadUtil;
 import lombok.extern.slf4j.Slf4j;
+import pers.wuyou.robot.core.RobotCore;
+import pers.wuyou.robot.core.util.SenderUtil;
 import pers.wuyou.robot.game.landlords.GameManager;
 import pers.wuyou.robot.game.landlords.entity.Player;
 import pers.wuyou.robot.game.landlords.entity.Room;
 import pers.wuyou.robot.game.landlords.enums.GameEventCode;
 import pers.wuyou.robot.game.landlords.util.NotifyUtil;
-import pers.wuyou.robot.common.RobotCore;
-import pers.wuyou.robot.util.SenderUtil;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -18,8 +18,8 @@ import java.util.Map;
  */
 @Slf4j
 public class GameEventManager {
-    private final static Map<GameEventCode, GameEvent> GAME_EVENT_MAP = new HashMap<>();
-    private final static String GAME_EVENT_PACKAGE = "pers.wuyou.robot.game.landlords.game.Game";
+    private static final Map<GameEventCode, GameEvent> GAME_EVENT_MAP = new EnumMap<>(GameEventCode.class);
+    private static final String GAME_EVENT_PACKAGE = "pers.wuyou.robot.game.landlords.game.Game";
 
     private GameEventManager() {
     }

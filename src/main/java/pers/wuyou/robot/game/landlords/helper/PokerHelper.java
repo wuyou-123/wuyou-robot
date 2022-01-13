@@ -6,6 +6,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Component;
+import pers.wuyou.robot.core.util.CatUtil;
+import pers.wuyou.robot.core.util.CommandUtil;
+import pers.wuyou.robot.core.util.FileUtil;
 import pers.wuyou.robot.game.landlords.GameManager;
 import pers.wuyou.robot.game.landlords.entity.Player;
 import pers.wuyou.robot.game.landlords.entity.Poker;
@@ -14,12 +17,8 @@ import pers.wuyou.robot.game.landlords.enums.PokerLevel;
 import pers.wuyou.robot.game.landlords.enums.PokerType;
 import pers.wuyou.robot.game.landlords.enums.SellType;
 import pers.wuyou.robot.game.landlords.exception.LandLordsException;
-import pers.wuyou.robot.game.landlords.exception.PokerException;
-import pers.wuyou.robot.util.CatUtil;
-import pers.wuyou.robot.util.FileUtil;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -30,7 +29,6 @@ import java.util.regex.Pattern;
 @Slf4j
 @SuppressWarnings("AlibabaUndefineMagicConstant")
 public class PokerHelper {
-
     /**
      * 所有扑克牌类型
      */
@@ -43,11 +41,7 @@ public class PokerHelper {
         PokerType[] pokerTypes = PokerType.values();
 
         for (PokerLevel level : pokerLevels) {
-            if (level == PokerLevel.LEVEL_BIG_KING) {
-                BASE_POKERS.add(new Poker(level, PokerType.BLANK));
-                continue;
-            }
-            if (level == PokerLevel.LEVEL_SMALL_KING) {
+            if (level == PokerLevel.LEVEL_BIG_KING || level == PokerLevel.LEVEL_SMALL_KING) {
                 BASE_POKERS.add(new Poker(level, PokerType.BLANK));
                 continue;
             }
@@ -58,20 +52,18 @@ public class PokerHelper {
                 BASE_POKERS.add(new Poker(level, type));
             }
         }
-    }
-
-    public static void init() {
+        final String errTip = "资源文件未找到,请确认项目文件是否完整";
         try {
             if (GameManager.RUNNING_IN_JAR) {
                 ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
                 Resource[] resources = resolver.getResources("classpath:**/generatePoker.py");
                 if (resources.length == 0) {
-                    throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
+                    throw new LandLordsException(errTip);
                 }
                 FileUtil.saveResourceToTempDirectory(resources[0], GameManager.GAME_NAME);
                 Resource[] jpgResources = resolver.getResources("classpath:**/poker/*.jpg");
                 if (jpgResources.length == 0) {
-                    throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
+                    throw new LandLordsException(errTip);
                 }
                 for (Resource jpgResource : jpgResources) {
                     FileUtil.saveResourceToTempDirectory(jpgResource, GameManager.GAME_NAME);
@@ -79,7 +71,7 @@ public class PokerHelper {
             } else {
                 Resource resource = new ClassPathResource(File.separator + GameManager.GAME_NAME);
                 if (!resource.exists()) {
-                    throw new LandLordsException("扑克牌资源文件未找到,请确认项目文件是否完整");
+                    throw new LandLordsException(errTip);
                 }
                 final File file = resource.getFile();
                 final File temp = new File(GameManager.TEMP_PATH);
@@ -87,8 +79,11 @@ public class PokerHelper {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new LandLordsException("资源文件未找到,请确认项目文件是否完整");
+            throw new LandLordsException(errTip);
         }
+    }
+
+    private PokerHelper() {
     }
 
     public static void sortPoker(List<Poker> pokers) {
@@ -103,11 +98,10 @@ public class PokerHelper {
 
         List<PokerSell> validSells = new ArrayList<>();
         for (PokerSell sell : sells) {
-            if (sell.getSellType() == lastPokerSell.getSellType()) {
-                if (sell.getScore() > lastPokerSell.getScore() && sell.getSellPokers().size() == lastPokerSell.getSellPokers().size()) {
-                    validSells.add(sell);
-                }
+            if (sell.getSellType() == lastPokerSell.getSellType() && sell.getScore() > lastPokerSell.getScore() && sell.getSellPokers().size() == lastPokerSell.getSellPokers().size()) {
+                validSells.add(sell);
             }
+
             if (sell.getSellType() == SellType.KING_BOMB) {
                 validSells.add(sell);
             }
@@ -130,18 +124,16 @@ public class PokerHelper {
             boolean isTarget = false;
             for (int pi = 0; pi < copyList.size(); pi++) {
                 Poker poker = copyList.get(pi);
-                if (poker != null) {
-                    if (Arrays.asList(poker.getLevel().getAlias()).contains(option)) {
-                        isTarget = true;
-                        //Index start from 1, not 0
-                        indexes[index] = pi + 1;
-                        copyList.set(pi, null);
-                        break;
-                    }
+                if (poker != null && Arrays.asList(poker.getLevel().getAlias()).contains(option)) {
+                    isTarget = true;
+                    //Index start from 1, not 0
+                    indexes[index] = pi + 1;
+                    copyList.set(pi, null);
+                    break;
                 }
             }
             if (!isTarget) {
-                return null;
+                return new int[0];
             }
         }
         Arrays.sort(indexes);
@@ -163,122 +155,132 @@ public class PokerHelper {
         return access;
     }
 
-    @SuppressWarnings("AlibabaMethodTooLong")
+    @SuppressWarnings("all")
     public static PokerSell checkPokerType(List<Poker> pokers) {
 
-        if (pokers != null && !pokers.isEmpty()) {
-            sortPoker(pokers);
+        if (pokers == null || pokers.isEmpty()) {
+            return new PokerSell(SellType.ILLEGAL, null, -1);
+        }
+        sortPoker(pokers);
 
-            int[] levelTable = new int[20];
-            for (Poker poker : pokers) {
-                levelTable[poker.getLevel().getLevel()]++;
+        int[] levelTable = new int[20];
+        for (Poker poker : pokers) {
+            levelTable[poker.getLevel().getLevel()]++;
+        }
+
+        int startIndex = -1;
+        int endIndex = -1;
+        int count = 0;
+
+        int singleCount = 0;
+        int doubleCount = 0;
+        int threeCount = 0;
+        int threeStartIndex = -1;
+        int threeEndIndex = -1;
+        int fourCount = 0;
+        int fourStartIndex = -1;
+        int fourEndIndex = -1;
+        for (int index = 0; index < levelTable.length; index++) {
+            int value = levelTable[index];
+            if (value == 0) {
+                continue;
             }
-
-            int startIndex = -1;
-            int endIndex = -1;
-            int count = 0;
-
-            int singleCount = 0;
-            int doubleCount = 0;
-            int threeCount = 0;
-            int threeStartIndex = -1;
-            int threeEndIndex = -1;
-            int fourCount = 0;
-            int fourStartIndex = -1;
-            int fourEndIndex = -1;
-            for (int index = 0; index < levelTable.length; index++) {
-                int value = levelTable[index];
-                if (value != 0) {
-                    endIndex = index;
-                    count++;
-                    if (startIndex == -1) {
-                        startIndex = index;
+            endIndex = index;
+            count++;
+            if (startIndex == -1) {
+                startIndex = index;
+            }
+            switch (value) {
+                case 1:
+                    singleCount++;
+                    break;
+                case 2:
+                    doubleCount++;
+                    break;
+                case 3:
+                    if (threeStartIndex == -1) {
+                        threeStartIndex = index;
                     }
-                    if (value == 1) {
-                        singleCount++;
-                    } else if (value == 2) {
-                        doubleCount++;
-                    } else if (value == 3) {
-                        if (threeStartIndex == -1) {
-                            threeStartIndex = index;
-                        }
-                        threeEndIndex = index;
-                        threeCount++;
-                    } else if (value == 4) {
-                        if (fourStartIndex == -1) {
-                            fourStartIndex = index;
-                        }
-                        fourEndIndex = index;
-                        fourCount++;
+                    threeEndIndex = index;
+                    threeCount++;
+                    break;
+                case 4:
+                    if (fourStartIndex == -1) {
+                        fourStartIndex = index;
                     }
-                }
+                    fourEndIndex = index;
+                    fourCount++;
+                    break;
+                default:
             }
+        }
 
-            if (singleCount == doubleCount && singleCount == threeCount && singleCount == 0 && fourCount == 1) {
-                return new PokerSell(SellType.BOMB, pokers, startIndex);
-            }
+        if (singleCount == doubleCount && singleCount == threeCount && singleCount == 0 && fourCount == 1) {
+            return new PokerSell(SellType.BOMB, pokers, startIndex);
+        }
 
-            if (singleCount == 2 && startIndex == PokerLevel.LEVEL_SMALL_KING.getLevel() && endIndex == PokerLevel.LEVEL_BIG_KING.getLevel()) {
-                return new PokerSell(SellType.KING_BOMB, pokers, PokerLevel.LEVEL_SMALL_KING.getLevel());
-            }
+        if (singleCount == 2 && startIndex == PokerLevel.LEVEL_SMALL_KING.getLevel() && endIndex == PokerLevel.LEVEL_BIG_KING.getLevel()) {
+            return new PokerSell(SellType.KING_BOMB, pokers, PokerLevel.LEVEL_SMALL_KING.getLevel());
+        }
 
-            if (startIndex == endIndex) {
-                if (levelTable[startIndex] == 1) {
+        if (startIndex == endIndex) {
+            switch (levelTable[startIndex]) {
+                case 1:
                     return new PokerSell(SellType.SINGLE, pokers, startIndex);
-                } else if (levelTable[startIndex] == 2) {
+                case 2:
                     return new PokerSell(SellType.DOUBLE, pokers, startIndex);
-                } else if (levelTable[startIndex] == 3) {
+                case 3:
                     return new PokerSell(SellType.THREE, pokers, startIndex);
-                }
+                default:
             }
-            if (endIndex - startIndex == count - 1 && endIndex < PokerLevel.LEVEL_2.getLevel()) {
-                if (levelTable[startIndex] == 1 && singleCount > 4 && doubleCount + threeCount + fourCount == 0) {
-                    return new PokerSell(SellType.SINGLE_STRAIGHT, pokers, endIndex);
-                } else if (levelTable[startIndex] == 2 && doubleCount > 2 && singleCount + threeCount + fourCount == 0) {
-                    return new PokerSell(SellType.DOUBLE_STRAIGHT, pokers, endIndex);
-                } else if (levelTable[startIndex] == 3 && threeCount > 1 && doubleCount + singleCount + fourCount == 0) {
-                    return new PokerSell(SellType.THREE_STRAIGHT, pokers, endIndex);
-                } else if (levelTable[startIndex] == 4 && fourCount > 1 && doubleCount + threeCount + singleCount == 0) {
-                    return new PokerSell(SellType.FOUR_STRAIGHT, pokers, endIndex);
-                }
+        }
+        if (endIndex - startIndex == count - 1 && endIndex < PokerLevel.LEVEL_2.getLevel()) {
+            if (levelTable[startIndex] == 1 && singleCount > 4 && doubleCount + threeCount + fourCount == 0) {
+                return new PokerSell(SellType.SINGLE_STRAIGHT, pokers, endIndex);
+            } else if (levelTable[startIndex] == 2 && doubleCount > 2 && singleCount + threeCount + fourCount == 0) {
+                return new PokerSell(SellType.DOUBLE_STRAIGHT, pokers, endIndex);
+            } else if (levelTable[startIndex] == 3 && threeCount > 1 && doubleCount + singleCount + fourCount == 0) {
+                return new PokerSell(SellType.THREE_STRAIGHT, pokers, endIndex);
+            } else if (levelTable[startIndex] == 4 && fourCount > 1 && doubleCount + threeCount + singleCount == 0) {
+                return new PokerSell(SellType.FOUR_STRAIGHT, pokers, endIndex);
             }
+        }
 
-            if (threeCount != 0) {
-                if (singleCount != 0 && singleCount == threeCount && doubleCount == 0 && fourCount == 0) {
-                    if (threeCount == 1) {
-                        return new PokerSell(SellType.THREE_ZONES_SINGLE, pokers, threeEndIndex);
-                    } else {
-                        if (threeEndIndex - threeStartIndex + 1 == threeCount && threeEndIndex < PokerLevel.LEVEL_2.getLevel()) {
-                            return new PokerSell(SellType.THREE_STRAIGHT_WITH_SINGLE, pokers, threeEndIndex);
-                        }
+        if (threeCount != 0) {
+            if (singleCount != 0 && singleCount == threeCount && doubleCount == 0 && fourCount == 0) {
+                if (threeCount == 1) {
+                    return new PokerSell(SellType.THREE_ZONES_SINGLE, pokers, threeEndIndex);
+                } else {
+                    if (threeEndIndex - threeStartIndex + 1 == threeCount && threeEndIndex < PokerLevel.LEVEL_2.getLevel()) {
+                        return new PokerSell(SellType.THREE_STRAIGHT_WITH_SINGLE, pokers, threeEndIndex);
                     }
-                } else if (doubleCount != 0 && doubleCount == threeCount && singleCount == 0 && fourCount == 0) {
-                    if (threeCount == 1) {
-                        return new PokerSell(SellType.THREE_ZONES_DOUBLE, pokers, threeEndIndex);
-                    } else {
-                        if (threeEndIndex - threeStartIndex + 1 == threeCount && threeEndIndex < PokerLevel.LEVEL_2.getLevel()) {
-                            return new PokerSell(SellType.FOUR_STRAIGHT_WITH_DOUBLE, pokers, threeEndIndex);
-                        }
+                }
+            } else if (doubleCount != 0 && doubleCount == threeCount && singleCount == 0 && fourCount == 0) {
+                if (threeCount == 1) {
+                    return new PokerSell(SellType.THREE_ZONES_DOUBLE, pokers, threeEndIndex);
+                } else {
+                    if (threeEndIndex - threeStartIndex + 1 == threeCount && threeEndIndex < PokerLevel.LEVEL_2.getLevel()) {
+                        return new PokerSell(SellType.FOUR_STRAIGHT_WITH_DOUBLE, pokers, threeEndIndex);
                     }
                 }
             }
+        }
 
-            if (fourCount != 0) {
-                if (singleCount != 0 && singleCount == fourCount * 2 && doubleCount == 0 && threeCount == 0) {
-                    if (fourCount == 1) {
-                        return new PokerSell(SellType.FOUR_ZONES_SINGLE, pokers, fourEndIndex);
-                    } else {
-                        if (fourEndIndex - fourStartIndex + 1 == fourCount && fourEndIndex < PokerLevel.LEVEL_2.getLevel()) {
-                            return new PokerSell(SellType.FOUR_STRAIGHT_WITH_SINGLE, pokers, fourEndIndex);
-                        }
+        if (fourCount != 0) {
+            if (singleCount != 0 && singleCount == fourCount * 2 && doubleCount == 0 && threeCount == 0) {
+                if (fourCount == 1) {
+                    return new PokerSell(SellType.FOUR_ZONES_SINGLE, pokers, fourEndIndex);
+                } else {
+                    if (fourEndIndex - fourStartIndex + 1 == fourCount && fourEndIndex < PokerLevel.LEVEL_2.getLevel()) {
+                        return new PokerSell(SellType.FOUR_STRAIGHT_WITH_SINGLE, pokers, fourEndIndex);
                     }
-                } else if (doubleCount != 0 && doubleCount == fourCount * 2 && singleCount == 0 && threeCount == 0) {
-                    if (fourCount == 1) {
-                        return new PokerSell(SellType.FOUR_ZONES_DOUBLE, pokers, fourEndIndex);
-                    } else {
-                        if (fourEndIndex - fourStartIndex + 1 == fourCount && fourEndIndex < PokerLevel.LEVEL_2.getLevel()) {
-                            return new PokerSell(SellType.FOUR_STRAIGHT_WITH_DOUBLE, pokers, fourEndIndex);
-                        }
+                }
+            } else if (doubleCount != 0 && doubleCount == fourCount * 2 && singleCount == 0 && threeCount == 0) {
+                if (fourCount == 1) {
+                    return new PokerSell(SellType.FOUR_ZONES_DOUBLE, pokers, fourEndIndex);
+                } else {
+                    if (fourEndIndex - fourStartIndex + 1 == fourCount && fourEndIndex < PokerLevel.LEVEL_2.getLevel()) {
+                        return new PokerSell(SellType.FOUR_STRAIGHT_WITH_DOUBLE, pokers, fourEndIndex);
                     }
                 }
             }
@@ -334,80 +336,78 @@ public class PokerHelper {
     }
 
     public static List<PokerSell> parsePokerSells(List<Poker> pokers) {
-        List<PokerSell> pokerSells = new ArrayList<>();
-        int size = pokers.size();
+        final List<PokerSell> pokerSells = new ArrayList<>();
+        allSingleOrDouble(pokers, pokerSells);
+        shunzi(pokerSells);
+        shunziWithArgs(pokerSells);
+        kingBoom(pokers, pokerSells);
+        return pokerSells;
+    }
 
-        //all single or double
-        {
-            int count = 0;
-            int lastLevel = -1;
-            List<Poker> sellPokers = new ArrayList<>(4);
-            for (Poker poker : pokers) {
-                int level = poker.getLevel().getLevel();
-                if (lastLevel == -1) {
+    private static void kingBoom(final List<Poker> pokers, final List<PokerSell> pokerSells) {
+        int size = pokers.size();
+        if (size > 1 && pokers.get(size - 1).getLevel() == PokerLevel.LEVEL_BIG_KING && pokers.get(size - 2).getLevel() == PokerLevel.LEVEL_SMALL_KING) {
+            pokerSells.add(new PokerSell(SellType.KING_BOMB, new ArrayList<>(Arrays.asList(pokers.get(size - 2), pokers.get(size - 1))), PokerLevel.LEVEL_BIG_KING.getLevel()));
+        }
+    }
+
+    private static void shunziWithArgs(final List<PokerSell> pokerSells) {
+        for (int index = 0; index < pokerSells.size(); index++) {
+            PokerSell sell = pokerSells.get(index);
+            if (sell.getSellType() == SellType.THREE) {
+                parseArgs(pokerSells, sell, 1, SellType.SINGLE, SellType.THREE_ZONES_SINGLE);
+                parseArgs(pokerSells, sell, 1, SellType.DOUBLE, SellType.THREE_ZONES_DOUBLE);
+            } else if (sell.getSellType() == SellType.BOMB) {
+                parseArgs(pokerSells, sell, 2, SellType.SINGLE, SellType.FOUR_ZONES_SINGLE);
+                parseArgs(pokerSells, sell, 2, SellType.DOUBLE, SellType.FOUR_ZONES_DOUBLE);
+            } else if (sell.getSellType() == SellType.THREE_STRAIGHT) {
+                int count = sell.getSellPokers().size() / 3;
+                parseArgs(pokerSells, sell, count, SellType.SINGLE, SellType.THREE_STRAIGHT_WITH_SINGLE);
+                parseArgs(pokerSells, sell, count, SellType.DOUBLE, SellType.THREE_STRAIGHT_WITH_DOUBLE);
+            } else if (sell.getSellType() == SellType.FOUR_STRAIGHT) {
+                int count = (sell.getSellPokers().size() / 4) * 2;
+                parseArgs(pokerSells, sell, count, SellType.SINGLE, SellType.FOUR_STRAIGHT_WITH_SINGLE);
+                parseArgs(pokerSells, sell, count, SellType.DOUBLE, SellType.FOUR_STRAIGHT_WITH_DOUBLE);
+            }
+        }
+    }
+
+    private static void shunzi(final List<PokerSell> pokerSells) {
+        parsePokerSellStraight(pokerSells, SellType.SINGLE);
+        parsePokerSellStraight(pokerSells, SellType.DOUBLE);
+        parsePokerSellStraight(pokerSells, SellType.THREE);
+        parsePokerSellStraight(pokerSells, SellType.BOMB);
+    }
+
+    private static void allSingleOrDouble(final List<Poker> pokers, final List<PokerSell> pokerSells) {
+        int count = 0;
+        int lastLevel = -1;
+        List<Poker> sellPokers = new ArrayList<>(4);
+        for (Poker poker : pokers) {
+            int level = poker.getLevel().getLevel();
+            if (lastLevel == -1) {
+                ++count;
+            } else {
+                if (level == lastLevel) {
                     ++count;
                 } else {
-                    if (level == lastLevel) {
-                        ++count;
-                    } else {
-                        count = 1;
-                        sellPokers.clear();
-                    }
-                }
-                sellPokers.add(poker);
-                if (count == 1) {
-                    pokerSells.add(new PokerSell(SellType.SINGLE, new ArrayList<>(sellPokers), poker.getLevel().getLevel()));
-                } else if (count == 2) {
-                    pokerSells.add(new PokerSell(SellType.DOUBLE, new ArrayList<>(sellPokers), poker.getLevel().getLevel()));
-                } else if (count == 3) {
-                    pokerSells.add(new PokerSell(SellType.THREE, new ArrayList<>(sellPokers), poker.getLevel().getLevel()));
-                } else if (count == 4) {
-                    pokerSells.add(new PokerSell(SellType.BOMB, new ArrayList<>(sellPokers), poker.getLevel().getLevel()));
-                }
-
-                lastLevel = level;
-            }
-        }
-        //Shunzi
-        {
-            parsePokerSellStraight(pokerSells, SellType.SINGLE);
-            parsePokerSellStraight(pokerSells, SellType.DOUBLE);
-            parsePokerSellStraight(pokerSells, SellType.THREE);
-            parsePokerSellStraight(pokerSells, SellType.BOMB);
-        }
-
-        //Shunzi with args
-        {
-            for (int index = 0; index < pokerSells.size(); index++) {
-                PokerSell sell = pokerSells.get(index);
-                if (sell.getSellType() == SellType.THREE) {
-                    parseArgs(pokerSells, sell, 1, SellType.SINGLE, SellType.THREE_ZONES_SINGLE);
-                    parseArgs(pokerSells, sell, 1, SellType.DOUBLE, SellType.THREE_ZONES_DOUBLE);
-                } else if (sell.getSellType() == SellType.BOMB) {
-                    parseArgs(pokerSells, sell, 2, SellType.SINGLE, SellType.FOUR_ZONES_SINGLE);
-                    parseArgs(pokerSells, sell, 2, SellType.DOUBLE, SellType.FOUR_ZONES_DOUBLE);
-                } else if (sell.getSellType() == SellType.THREE_STRAIGHT) {
-                    int count = sell.getSellPokers().size() / 3;
-                    parseArgs(pokerSells, sell, count, SellType.SINGLE, SellType.THREE_STRAIGHT_WITH_SINGLE);
-                    parseArgs(pokerSells, sell, count, SellType.DOUBLE, SellType.THREE_STRAIGHT_WITH_DOUBLE);
-                } else if (sell.getSellType() == SellType.FOUR_STRAIGHT) {
-                    int count = (sell.getSellPokers().size() / 4) * 2;
-                    parseArgs(pokerSells, sell, count, SellType.SINGLE, SellType.FOUR_STRAIGHT_WITH_SINGLE);
-                    parseArgs(pokerSells, sell, count, SellType.DOUBLE, SellType.FOUR_STRAIGHT_WITH_DOUBLE);
+                    count = 1;
+                    sellPokers.clear();
                 }
             }
-        }
-
-        //king boom
-        {
-            if (size > 1) {
-                if (pokers.get(size - 1).getLevel() == PokerLevel.LEVEL_BIG_KING && pokers.get(size - 2).getLevel() == PokerLevel.LEVEL_SMALL_KING) {
-                    pokerSells.add(new PokerSell(SellType.KING_BOMB, new ArrayList<>(Arrays.asList(pokers.get(size - 2), pokers.get(size - 1))), PokerLevel.LEVEL_BIG_KING.getLevel()));
-                }
+            sellPokers.add(poker);
+            if (count == 1) {
+                pokerSells.add(new PokerSell(SellType.SINGLE, new ArrayList<>(sellPokers), poker.getLevel().getLevel()));
+            } else if (count == 2) {
+                pokerSells.add(new PokerSell(SellType.DOUBLE, new ArrayList<>(sellPokers), poker.getLevel().getLevel()));
+            } else if (count == 3) {
+                pokerSells.add(new PokerSell(SellType.THREE, new ArrayList<>(sellPokers), poker.getLevel().getLevel()));
+            } else if (count == 4) {
+                pokerSells.add(new PokerSell(SellType.BOMB, new ArrayList<>(sellPokers), poker.getLevel().getLevel()));
             }
-        }
 
-        return pokerSells;
+            lastLevel = level;
+        }
     }
 
     private static void parseArgs(List<PokerSell> pokerSells, PokerSell pokerSell, int deep, SellType sellType, SellType targetSellType) {
@@ -440,7 +440,7 @@ public class PokerHelper {
         }
     }
 
-    @SuppressWarnings("DuplicatedCode")
+    @SuppressWarnings("all")
     private static void parsePokerSellStraight(List<PokerSell> pokerSells, SellType sellType) {
         int minLength = -1;
         int width = -1;
@@ -515,7 +515,7 @@ public class PokerHelper {
 
     public static String textOnlyNoType(List<Poker> pokers) {
         StringBuilder builder = new StringBuilder();
-        if (pokers != null && pokers.size() > 0) {
+        if (pokers != null && !pokers.isEmpty()) {
             for (Poker poker : pokers) {
                 String name = poker.getLevel().getName();
                 builder.append(name).append(" ");
@@ -528,85 +528,76 @@ public class PokerHelper {
         return getPoker(player.getPokers());
     }
 
+    @SuppressWarnings("all")
     public static String getPoker(List<Poker> pokers) {
-        if (pokers.size() == 0) {
+        if (pokers.isEmpty()) {
             return "";
         }
-        try {
-            List<String> pokerList = new ArrayList<>();
-            for (Poker poker : pokers) {
-                String b, a = poker.getLevel().getName()
-                        .replace("A", "1")
-                        .replace("小王", "s")
-                        .replace("大王", "x");
-                switch (poker.getType().toString()) {
-                    case "SPADE":
-                        b = "a";
-                        break;
-                    case "HEART":
-                        b = "b";
-                        break;
-                    case "CLUB":
-                        b = "c";
-                        break;
-                    case "DIAMOND":
-                        b = "d";
-                        break;
-                    default:
-                        b = "e";
+        List<String> pokerList = new ArrayList<>();
+        for (Poker poker : pokers) {
+            String b;
+            String a = poker.getLevel().getName()
+                    .replace("A", "1")
+                    .replace("小王", "s")
+                    .replace("大王", "x");
+            switch (poker.getType().toString()) {
+                case "SPADE":
+                    b = "a";
+                    break;
+                case "HEART":
+                    b = "b";
+                    break;
+                case "CLUB":
+                    b = "c";
+                    break;
+                case "DIAMOND":
+                    b = "d";
+                    break;
+                default:
+                    b = "e";
+            }
+            pokerList.add((b + a).toLowerCase(Locale.ROOT).replace("10", "0"));
+        }
+        if (pokerList.size() == 1) {
+            return CatUtil.getImage(GameManager.TEMP_PATH + pokerList.get(0) + ".jpg").toString();
+        }
+        char[] sort = new char[]{'x', 's', '2', '1', 'k', 'q', 'j', '0', '9', '8', '7', '6', '5', '4', '3'};
+        char[] sort2 = new char[]{'e', 'a', 'b', 'c', 'd'};
+        pokerList.sort((a, b) -> {
+            int aIndex = -1;
+            int bIndex = -1;
+            for (int i = 0; i < sort.length; i++) {
+                if (a.split("")[1].charAt(0) == (sort[i])) {
+                    aIndex = i;
                 }
-                pokerList.add((b + a).toLowerCase(Locale.ROOT).replace("10", "0"));
+                if (b.split("")[1].charAt(0) == (sort[i])) {
+                    bIndex = i;
+                }
             }
-            if (pokerList.size() == 1) {
-                return CatUtil.getImage(GameManager.TEMP_PATH + pokerList.get(0) + ".jpg").toString();
-            }
-            char[] sort = new char[]{'x', 's', '2', '1', 'k', 'q', 'j', '0', '9', '8', '7', '6', '5', '4', '3'};
-            char[] sort2 = new char[]{'e', 'a', 'b', 'c', 'd'};
-            pokerList.sort((a, b) -> {
-                int aIndex = -1;
-                int bIndex = -1;
-                for (int i = 0; i < sort.length; i++) {
-                    if (a.split("")[1].charAt(0) == (sort[i])) {
+            if (aIndex == bIndex) {
+                for (int i = 0; i < sort2.length; i++) {
+                    if (a.split("")[0].charAt(0) == (sort2[i])) {
                         aIndex = i;
                     }
-                    if (b.split("")[1].charAt(0) == (sort[i])) {
+                    if (b.split("")[0].charAt(0) == (sort2[i])) {
                         bIndex = i;
                     }
                 }
-                if (aIndex == bIndex) {
-                    for (int i = 0; i < sort2.length; i++) {
-                        if (a.split("")[0].charAt(0) == (sort2[i])) {
-                            aIndex = i;
-                        }
-                        if (b.split("")[0].charAt(0) == (sort2[i])) {
-                            bIndex = i;
-                        }
-                    }
-                }
-                return aIndex - bIndex;
-            });
-            String pokerStr = pokerList.toString().replace(" ", "").replace(",", "_");
-            pokerStr = pokerStr.substring(1, pokerStr.length() - 1);
-            File pokerDir = new File(GameManager.TEMP_PATH + "poker_comp");
-            if (!pokerDir.exists() && !pokerDir.mkdirs()) {
-                throw new IOException("Destination '" + pokerDir + "' directory cannot be created");
             }
-            File pokerFile = new File(pokerDir + SEPARATOR + pokerStr + ".jpg");
-            if (pokerFile.exists()) {
-                return CatUtil.getImage(pokerFile.toString()).toString();
-            }
-            List<String> command = new ArrayList<>();
-            command.add("python");
-            command.add(GameManager.TEMP_PATH + "generatePoker.py");
-            command.add(GameManager.TEMP_PATH);
-            command.add(pokerFile.toString());
-            command.addAll(pokerList);
-            Process proc = Runtime.getRuntime().exec(command.toArray(new String[]{}));
-            proc.waitFor();
-            return CatUtil.getImage(pokerFile.toString()).toString();
-        } catch (Exception e) {
-            throw new PokerException("生成扑克牌失败! 请联系管理员排查问题");
+            return aIndex - bIndex;
+        });
+        String pokerStr = pokerList.toString().replace(" ", "").replace(",", "_");
+        pokerStr = pokerStr.substring(1, pokerStr.length() - 1);
+        File pokerDir = new File(GameManager.TEMP_PATH + "poker_comp");
+        if (!pokerDir.exists() && !pokerDir.mkdirs()) {
+            throw new LandLordsException("Destination '" + pokerDir + "' directory cannot be created");
         }
+        File pokerFile = new File(pokerDir + SEPARATOR + pokerStr + ".jpg");
+        if (pokerFile.exists()) {
+            return CatUtil.getImage(pokerFile.toString()).toString();
+        }
+        CommandUtil.exec("python", pokerList, GameManager.TEMP_PATH + "generatePoker.py", GameManager.TEMP_PATH, pokerFile.toString());
+        return CatUtil.getImage(pokerFile.toString()).toString();
     }
 
     public static Character[] parsePoker(String message) {

@@ -1,16 +1,13 @@
 package pers.wuyou.robot.game.landlords;
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
-import pers.wuyou.robot.common.RobotCore;
+import pers.wuyou.robot.core.RobotCore;
+import pers.wuyou.robot.core.util.SenderUtil;
 import pers.wuyou.robot.game.landlords.common.GameEventManager;
 import pers.wuyou.robot.game.landlords.entity.Player;
 import pers.wuyou.robot.game.landlords.entity.Room;
 import pers.wuyou.robot.game.landlords.enums.GameEventCode;
 import pers.wuyou.robot.game.landlords.exception.LandLordsException;
-import pers.wuyou.robot.game.landlords.exception.PlayerException;
-import pers.wuyou.robot.game.landlords.helper.PokerHelper;
-import pers.wuyou.robot.util.SenderUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,20 +18,11 @@ import java.util.*;
 /**
  * @author wuyou
  */
-@Component
 public class GameManager {
     /**
      * 游戏名
      */
-    public final static String GAME_NAME = "landlords";
-    /**
-     * 房间列表
-     */
-    public static final List<Room> ROOM_LIST = new ArrayList<>();
-    /**
-     * 玩家列表
-     */
-    public static final List<Player> PLAYER_LIST = new ArrayList<>();
+    public static final String GAME_NAME = "landlords";
     /**
      * 最大玩家数量
      */
@@ -48,19 +36,29 @@ public class GameManager {
      */
     public static final String TEMP_PATH;
     /**
+     * 房间列表
+     */
+    protected static final List<Room> ROOM_LIST = new ArrayList<>();
+    /**
+     * 玩家列表
+     */
+    protected static final List<Player> PLAYER_LIST = new ArrayList<>();
+    /**
      * 用户携带数据
      */
     private static final Map<String, Map<String, Object>> PLAYER_DATA_MAP = new HashMap<>();
 
     static {
+
         // 检查当前电脑是否安装了python
+        final String errTip = "当前电脑没有python环境,请先安装或配置python环境后再运行";
         try {
             String python = "python";
             Process proc = Runtime.getRuntime().exec(new String[]{python, "--version"});
             BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             final String s = reader.readLine();
             if (s == null || !s.toLowerCase(Locale.ROOT).contains(python)) {
-                throw new LandLordsException("当前电脑没有python环境,请先安装或配置python环境后再运行");
+                throw new LandLordsException(errTip);
             }
         } catch (Exception e) {
             try {
@@ -69,10 +67,10 @@ public class GameManager {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
                 final String s = reader.readLine();
                 if (s == null || !s.toLowerCase(Locale.ROOT).contains(python)) {
-                    throw new LandLordsException("当前电脑没有python环境,请先安装或配置python环境后再运行");
+                    throw new LandLordsException(errTip);
                 }
             } catch (Exception e1) {
-                throw new LandLordsException("当前电脑没有python环境,请先安装或配置python环境后再运行");
+                throw new LandLordsException(errTip);
             }
         }
         URL url = GameManager.class.getResource("");
@@ -81,8 +79,7 @@ public class GameManager {
         TEMP_PATH = RobotCore.TEMP_PATH + GAME_NAME + File.separator;
     }
 
-    GameManager() {
-        PokerHelper.init();
+    private GameManager() {
     }
 
     public static void reset(String group) {
@@ -201,7 +198,7 @@ public class GameManager {
     public static Room getRoomByAccountCode(String accountCode) {
         final Player player = getPlayer(accountCode);
         if (player == null) {
-            throw new PlayerException("玩家不存在");
+            throw new LandLordsException("玩家不存在");
         }
         return player.getRoom();
     }
@@ -220,8 +217,4 @@ public class GameManager {
         }
     }
 
-///    public static void verifyPlayerIsFriend(String accountCode) {
-///        final FriendInfo friendInfo = RobotUtil.getter().get(accountCode);
-///        System.out.println(friendInfo);
-///    }
 }
