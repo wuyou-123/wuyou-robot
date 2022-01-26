@@ -52,4 +52,14 @@ public class FileUtil {
     public static void saveResourceToTempDirectory(Resource resource, String folderName) throws IOException {
         saveTempFile(resource.getInputStream(), resource.getFilename(), folderName);
     }
+
+    /**
+     * 判断文件是否存在
+     *
+     * @param path 文件路径
+     * @return 如果存在返回true
+     */
+    public static boolean exist(String path) {
+        return (null != path) && new File(path).exists();
+    }
 }

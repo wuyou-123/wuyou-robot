@@ -19,7 +19,7 @@ import java.util.Map;
 @Slf4j
 public class GameEventManager {
     private static final Map<GameEventCode, GameEvent> GAME_EVENT_MAP = new EnumMap<>(GameEventCode.class);
-    private static final String GAME_EVENT_PACKAGE = "pers.wuyou.robot.game.landlords.game.Game";
+    private static final String GAME_EVENT_PACKAGE = "pers.wuyou.robot.game.landlords.game.event.Game";
 
     private GameEventManager() {
     }

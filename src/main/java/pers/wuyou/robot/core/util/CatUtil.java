@@ -11,7 +11,7 @@ import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.api.message.results.GroupMemberInfo;
 import love.forte.simbot.api.sender.Getter;
 import pers.wuyou.robot.core.RobotCore;
-import pers.wuyou.robot.core.common.Constant;
+import pers.wuyou.robot.music.entity.MusicInfo;
 
 import java.util.*;
 
@@ -23,7 +23,6 @@ import java.util.*;
 public class CatUtil {
     public static final CatCodeUtil UTILS = CatCodeUtil.getInstance();
     private static final CodeTemplate<Neko> NEKO_TEMPLATE = UTILS.getNekoTemplate();
-    private static final String AT = Constant.AT;
     private static final String CODE = "code";
     private static Getter getter;
 
@@ -107,7 +106,7 @@ public class CatUtil {
      */
     public static String startsWithAt(String msg) {
         List<String> list = UTILS.split(msg);
-        Neko code = UTILS.getNeko(list.get(0), AT);
+        Neko code = UTILS.getNeko(list.get(0), CatType.AT);
         if (code != null) {
             return code.get(CODE);
         }
@@ -119,7 +118,7 @@ public class CatUtil {
      */
     public static Set<String> getAts(MessageGet msg) {
         Set<String> set = new HashSet<>();
-        for (Neko neko : msg.getMsgContent().getCats(AT)) {
+        for (Neko neko : msg.getMsgContent().getCats(CatType.AT)) {
             if (neko.get(CODE) != null) {
                 set.add(neko.get(CODE));
             }
@@ -132,7 +131,7 @@ public class CatUtil {
      */
     public static List<String> getAtList(MessageGet msg) {
         List<String> list = new ArrayList<>();
-        for (Neko neko : msg.getMsgContent().getCats(AT)) {
+        for (Neko neko : msg.getMsgContent().getCats(CatType.AT)) {
             if (neko.get(CODE) != null) {
                 list.add(neko.get(CODE));
             }
@@ -145,7 +144,7 @@ public class CatUtil {
      */
     public static Set<String> getAts(String msg) {
         Set<String> set = new HashSet<>();
-        for (Neko neko : UTILS.getNekoList(msg, AT)) {
+        for (Neko neko : UTILS.getNekoList(msg, CatType.AT)) {
             if (neko.get(CODE) != null) {
                 set.add(neko.get(CODE));
             }
@@ -157,7 +156,7 @@ public class CatUtil {
      * 获取所有艾特的QQ号的KQ码
      */
     public static Set<Neko> getAtKqs(String msg) {
-        final List<Neko> list = UTILS.getNekoList(msg, AT);
+        final List<Neko> list = UTILS.getNekoList(msg, CatType.AT);
         return new LinkedHashSet<>(list);
     }
 
@@ -209,7 +208,7 @@ public class CatUtil {
                     str = str.replace(neko, String.format("@%s\u202D%s", memberInfo.getAccountRemarkOrNickname(), withCode ? String.format("%s\u202C", code) : ""));
                 }
             } catch (NoSuchElementException e) {
-                str = str.replace(neko, String.format("@%s",  code));
+                str = str.replace(neko, String.format("@%s", code));
             }
         }
         return str;
@@ -230,24 +229,19 @@ public class CatUtil {
     /**
      * 获取音乐的猫猫码
      *
-     * @param title    音乐标题
-     * @param preview  预览图片链接
-     * @param artists  作者
-     * @param musicUrl 播放链接
-     * @param jumpUrl  跳转链接
-     * @param type     卡片类型
+     * @param musicInfo 音乐信息
      * @return Neko
      */
-    public static Neko getMusic(String title, String preview, String artists, String musicUrl, String jumpUrl, String type) {
+    public static Neko getMusic(MusicInfo musicInfo) {
         Map<String, String> map = new HashMap<>(8);
-        map.put("content", artists);
-        map.put("type", type);
-        map.put("musicUrl", musicUrl);
-        map.put("title", title);
-        map.put("pictureUrl", preview);
-        map.put("jumpUrl", jumpUrl);
-        map.put("brief", "[分享]" + title);
-        return CatUtil.UTILS.toNeko("music", map);
+        map.put("content", musicInfo.getArtist());
+        map.put("type", musicInfo.getType().getType());
+        map.put("musicUrl", musicInfo.getMusicUrl());
+        map.put("title", musicInfo.getTitle());
+        map.put("pictureUrl", musicInfo.getPreviewUrl());
+        map.put("jumpUrl", musicInfo.getJumpUrl());
+        map.put("brief", "[分享]" + musicInfo.getTitle());
+        return CatUtil.UTILS.toNeko(CatType.MUSIC, map);
     }
 
     /**
@@ -258,12 +252,74 @@ public class CatUtil {
      */
     public static Neko getRecord(String path) {
         MutableNeko neko = NEKO_TEMPLATE.record(path).mutable();
-        neko.setType("voice");
+        neko.setType(CatType.VOICE);
         return neko.immutable();
     }
 
     public static Neko getImage(String path) {
         return NEKO_TEMPLATE.image(path);
+    }
+
+    public static class CatType {
+        /**
+         * at消息
+         */
+        public static final String AT = "at";
+        /**
+         * 图片
+         */
+        public static final String IMAGE = "image";
+        /**
+         * 表情消息
+         */
+        public static final String FACE = "face";
+        /**
+         * 戳一戳
+         */
+        public static final String POKE = "poke";
+        /**
+         * 拍一拍
+         */
+        public static final String NUDGE = "nudge";
+        /**
+         * 语音消息
+         */
+        public static final String VOICE = "voice";
+        /**
+         * 文件
+         */
+        public static final String FILE = "file";
+        /**
+         * 链接消息
+         */
+        public static final String SHARE = "share";
+        /**
+         * 富文本消息
+         */
+        public static final String RICH = "rich";
+        /**
+         * json消息
+         */
+        public static final String JSON = "json";
+        /**
+         * xml消息
+         */
+        public static final String XML = "xml";
+        /**
+         * 骰子
+         */
+        public static final String DICE = "dice";
+        /**
+         * 音乐消息
+         */
+        public static final String MUSIC = "music";
+        /**
+         * 回复消息
+         */
+        public static final String QUOTE = "quote";
+
+        private CatType() {
+        }
     }
 
 }

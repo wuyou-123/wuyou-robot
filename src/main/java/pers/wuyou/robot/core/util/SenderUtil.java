@@ -2,6 +2,7 @@ package pers.wuyou.robot.core.util;
 
 import catcode.Neko;
 import love.forte.simbot.api.message.MessageContent;
+import love.forte.simbot.api.message.assists.Flag;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MessageGet;
 import love.forte.simbot.api.sender.Sender;
@@ -9,7 +10,10 @@ import love.forte.simbot.bot.BotManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pers.wuyou.robot.core.RobotCore;
+import pers.wuyou.robot.core.entity.BotSendMessage;
+import pers.wuyou.robot.core.service.BotSendMessageService;
 
+import java.util.Date;
 import java.util.NoSuchElementException;
 
 /**
@@ -21,15 +25,21 @@ import java.util.NoSuchElementException;
 @SuppressWarnings("unused")
 public class SenderUtil {
     private static Sender sender;
+    private static BotSendMessageService botSendMessageService;
 
 
     @Autowired
-    public SenderUtil(BotManager manager) {
+    public SenderUtil(BotManager manager, BotSendMessageService botSendMessageService) {
+        setBotSendMessageService(botSendMessageService);
         setSender(manager.getDefaultBot().getSender().SENDER);
     }
 
     private static void setSender(Sender sender) {
         SenderUtil.sender = sender;
+    }
+
+    private static void setBotSendMessageService(BotSendMessageService botSendMessageService) {
+        SenderUtil.botSendMessageService = botSendMessageService;
     }
 
     /**
@@ -86,6 +96,14 @@ public class SenderUtil {
      * @param message 消息内容
      */
     private static synchronized void sendMsg(SendType type, String code, String group, String message) {
+        final BotSendMessage botSendMessage = BotSendMessage.builder()
+                .content(message)
+                .sendType(type.name())
+                .botCode(RobotCore.getDefaultBotCode())
+                .targetCode(code)
+                .isSent(false)
+                .sendTime(new Date())
+                .build();
         if (message == null || message.isEmpty()) {
             return;
         }
@@ -93,23 +111,33 @@ public class SenderUtil {
             return;
         }
         try {
+            Flag<?> flag = null;
             switch (type) {
                 case GROUP:
-                    sender.sendGroupMsg(code, message);
+                    flag = sender.sendGroupMsg(code, message).get();
                     break;
                 case PRIVATE:
                     if (group != null && !group.isEmpty()) {
-                        sender.sendPrivateMsg(code, group, message);
+                        flag = sender.sendPrivateMsg(code, group, message).get();
                     } else {
-                        sender.sendPrivateMsg(code, message);
+                        flag = sender.sendPrivateMsg(code, message).get();
                     }
                     break;
                 default:
             }
+            assert flag != null;
+            final String id = flag.getFlag().getId();
+            botSendMessage.setFlag(id.substring(0, id.lastIndexOf("-")));
+            botSendMessage.setIsSent(true);
+            botSendMessage.setSendTime(new Date());
         } catch (NoSuchElementException e) {
             sendPrivateMsg(RobotCore.getADMINISTRATOR().get(0), String.format("尝试给%s[%s]发送消息: %s 失败", type, code, message));
         }
+        saveMessage(botSendMessage);
+    }
 
+    private static void saveMessage(BotSendMessage botSendMessage) {
+        RobotCore.THREAD_POOL.execute(() -> botSendMessageService.save(botSendMessage));
     }
 
     /**

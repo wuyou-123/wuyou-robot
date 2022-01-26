@@ -1,6 +1,7 @@
 package pers.wuyou.robot.core.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -67,6 +68,7 @@ public class Message implements Serializable {
      * 消息内容
      */
     @NotNull
+    @TableField("message")
     private String content;
 
     /**

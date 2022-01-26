@@ -20,9 +20,12 @@ import javax.annotation.PreDestroy;
 @Slf4j
 public class SshConfiguration implements LoadTimeWeaverAware {
 
-    private final Session session;
+    private Session session;
 
     public SshConfiguration(SshProperties sshProperties) {
+        if(sshProperties.getHost()==null){
+            return;
+        }
         Session s = null;
         try {
             s = new JSch().getSession(sshProperties.getUsername(), sshProperties.getHost(), sshProperties.getPort());

@@ -1,6 +1,7 @@
 package pers.wuyou.robot.core.common;
 
 import lombok.extern.slf4j.Slf4j;
+import love.forte.simbot.api.message.assists.Permissions;
 import love.forte.simbot.api.message.containers.AccountInfo;
 import love.forte.simbot.api.message.containers.GroupContainer;
 import love.forte.simbot.api.message.events.GroupMsg;
@@ -8,6 +9,7 @@ import love.forte.simbot.api.message.events.MessageGet;
 import love.forte.simbot.api.message.events.MessageRecallEventGet;
 import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.api.message.results.GroupMemberInfo;
+import love.forte.simbot.component.mirai.message.event.MiraiNudgedEvent;
 import love.forte.simbot.intercept.InterceptionType;
 import love.forte.simbot.listener.ListenerContext;
 import love.forte.simbot.listener.ListenerFunction;
@@ -30,35 +32,28 @@ import pers.wuyou.robot.core.util.StringUtil;
 @Component
 @Slf4j
 public class RobotListenerInterceptor implements ListenerInterceptor {
-    private final GroupBootStateService groupBootStateService;
-
-    public RobotListenerInterceptor(GroupBootStateService groupBootStateService) {
-        this.groupBootStateService = groupBootStateService;
-    }
 
     @NotNull
     @Override
     public InterceptionType intercept(@NotNull ListenerInterceptContext context) {
+        long start = System.currentTimeMillis();
         final ListenerFunction listenerFunction = context.getListenerFunction();
         final ListenerContext listenerContext = context.getListenerContext();
         final MsgGet msgGet = context.getMsgGet();
         final AccountInfo accountInfo = msgGet.getAccountInfo();
         final RobotListen annotation = listenerFunction.getAnnotation(RobotListen.class);
+        if (!isBoot(context)) {
+            return InterceptionType.INTERCEPT;
+        }
         if (msgGet instanceof GroupMsg) {
             final GroupMsg groupMsg = (GroupMsg) msgGet;
-            if (isBoot(context.getListenerFunction(), annotation, groupMsg)) {
-                assert annotation != null;
-                log.info(String.format("执行监听器%s(%s)失败, 当前群未开机", listenerFunction.getName(), annotation.desc()));
-                return InterceptionType.INTERCEPT;
-            }
             setGroupInfo(listenerContext, groupMsg);
             listenerContext.instant(ContextType.AT_LIST, CatUtil.getAtList(groupMsg));
             listenerContext.instant(ContextType.AT_SET, CatUtil.getAts(groupMsg));
-            if (!groupMsg.getAccountInfo().getAnonymous()) {
+            if (annotation != null && !groupMsg.getAccountInfo().getAnonymous() && annotation.permissions().getLevel() > Permissions.MEMBER.getLevel()) {
                 final GroupMemberInfo groupMemberInfo = RobotCore.getter().getMemberInfo(groupMsg);
-                listenerContext.instant(ContextType.MEMBER, groupMemberInfo);
                 if (Boolean.FALSE.equals(RobotCore.isBotAdministrator(accountInfo.getAccountCode()))
-                        && annotation != null && groupMemberInfo.getPermission().getLevel() < annotation.permissions().getLevel()) {
+                        && groupMemberInfo.getPermission().getLevel() < annotation.permissions().getLevel()) {
                     SenderUtil.sendGroupMsg(groupMsg, annotation.noPermissionTip());
                     log.info(String.format("执行监听器%s(%s)失败, 权限不足", listenerFunction.getName(), annotation.desc()));
                     return InterceptionType.INTERCEPT;
@@ -89,7 +84,31 @@ public class RobotListenerInterceptor implements ListenerInterceptor {
         } else {
             log.info(String.format("执行了监听器%s", listenerFunction.getName()));
         }
+        log.info("执行拦截器耗时: " + (System.currentTimeMillis() - start));
         return InterceptionType.PASS;
+    }
+
+    private boolean isBoot(ListenerInterceptContext context) {
+        final ListenerFunction listenerFunction = context.getListenerFunction();
+        final MsgGet msgGet = context.getMsgGet();
+        final RobotListen annotation = listenerFunction.getAnnotation(RobotListen.class);
+        if (msgGet instanceof MiraiNudgedEvent.ByMember) {
+            final String group = ((MiraiNudgedEvent.ByMember) msgGet).getGroupInfo().getGroupCode();
+            if (isBoot(context.getListenerFunction(), annotation, group)) {
+                assert annotation != null;
+                log.info(String.format("执行监听器%s(%s)失败, 当前群未开机", listenerFunction.getName(), annotation.desc()));
+                return false;
+            }
+        }
+        if (msgGet instanceof GroupMsg) {
+            final GroupMsg groupMsg = (GroupMsg) msgGet;
+            if (isBoot(context.getListenerFunction(), annotation, groupMsg.getGroupInfo().getGroupCode())) {
+                assert annotation != null;
+                log.info(String.format("执行监听器%s(%s)失败, 当前群未开机", listenerFunction.getName(), annotation.desc()));
+                return false;
+            }
+        }
+        return true;
     }
 
     private void setGroupInfo(ListenerContext listenerContext, GroupContainer groupMsg) {
@@ -99,8 +118,8 @@ public class RobotListenerInterceptor implements ListenerInterceptor {
         listenerContext.instant(ContextType.GROUP_NAME, StringUtil.isNullReturnEmpty(groupMsg.getGroupInfo().getGroupName()));
     }
 
-    private boolean isBoot(ListenerFunction function, RobotListen annotation, GroupMsg groupMsg) {
+    private boolean isBoot(ListenerFunction function, RobotListen annotation, String group) {
         return function.getGroups().stream().noneMatch(item -> item.getName().equals(Constant.CORE))
-                && annotation != null && annotation.isBoot() && !groupBootStateService.getGroupState(groupMsg.getGroupInfo().getGroupCode());
+                && annotation != null && annotation.isBoot() && !RobotCore.getBOOT_MAP().get(group);
     }
 }

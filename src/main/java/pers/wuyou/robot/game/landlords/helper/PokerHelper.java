@@ -6,6 +6,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Component;
+import pers.wuyou.robot.core.exception.ResourceNotFoundException;
 import pers.wuyou.robot.core.util.CatUtil;
 import pers.wuyou.robot.core.util.CommandUtil;
 import pers.wuyou.robot.core.util.FileUtil;
@@ -52,18 +53,17 @@ public class PokerHelper {
                 BASE_POKERS.add(new Poker(level, type));
             }
         }
-        final String errTip = "资源文件未找到,请确认项目文件是否完整";
         try {
             if (GameManager.RUNNING_IN_JAR) {
                 ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
                 Resource[] resources = resolver.getResources("classpath:**/generatePoker.py");
                 if (resources.length == 0) {
-                    throw new LandLordsException(errTip);
+                    throw new ResourceNotFoundException();
                 }
                 FileUtil.saveResourceToTempDirectory(resources[0], GameManager.GAME_NAME);
                 Resource[] jpgResources = resolver.getResources("classpath:**/poker/*.jpg");
                 if (jpgResources.length == 0) {
-                    throw new LandLordsException(errTip);
+                    throw new ResourceNotFoundException();
                 }
                 for (Resource jpgResource : jpgResources) {
                     FileUtil.saveResourceToTempDirectory(jpgResource, GameManager.GAME_NAME);
@@ -71,7 +71,7 @@ public class PokerHelper {
             } else {
                 Resource resource = new ClassPathResource(File.separator + GameManager.GAME_NAME);
                 if (!resource.exists()) {
-                    throw new LandLordsException(errTip);
+                    throw new ResourceNotFoundException();
                 }
                 final File file = resource.getFile();
                 final File temp = new File(GameManager.TEMP_PATH);
@@ -79,7 +79,7 @@ public class PokerHelper {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new LandLordsException(errTip);
+            throw new ResourceNotFoundException();
         }
     }
 

@@ -13,10 +13,6 @@ import pers.wuyou.robot.core.mapper.GroupBootStateMapper;
 import pers.wuyou.robot.core.service.GroupBootStateService;
 
 /**
- * <p>
- * 服务实现类
- * </p>
- *
  * @author wuyou
  * @since 2021-08-05
  */

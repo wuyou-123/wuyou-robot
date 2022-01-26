@@ -8,6 +8,8 @@ simbot:
   component:
     mirai:
       protocol: ANDROID_PHONE
+server:
+  port: 8880
 spring:
   profiles:
     active: test
@@ -15,14 +17,15 @@ spring:
     druid:
       username: ${MYSQL_USERNAME:root}
       password: ${MYSQL_PASSWORD}
-      # 由于配置了转发,所以这里写转发后的ip和端口号
-      url: jdbc:mysql://127.0.0.1:${SSH_PORT}/${DATABASE}?useUnicode=true&characterEncoding=UTF8&useSSL=false&serverTimezone=Asia/Shanghai
+      url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT:3306}/${DATABASE}?useUnicode=true&characterEncoding=UTF8&useSSL=false&serverTimezone=Asia/Shanghai
       driver-class-name: com.mysql.cj.jdbc.Driver
       db-type: com.alibaba.druid.pool.DruidDataSource
       initialSize: 5
       minIdle: 5
       maxActive: 20
       maxWait: 60000
+      testWhileIdle: true
+      testOnBorrow: true
       timeBetweenEvictionRunsMillis: 60000
       minEvictableIdleTimeMillis: 300000
       validationQuery: SELECT 1
@@ -39,20 +42,18 @@ mybatis-plus:
   global-config:
     banner: false
 
-# 通过ssh跳板机链接数据库
-ssh:
-  host: ${SSH_HOST}
-  port: 22
-  username: ${SSH_USERNAME:root}
-  password: ${SSH_PASSWORD}
-  forward:
-    from_host: 127.0.0.1
-    from_port: ${SSH_PORT}
-    # 数据库内网ip
-    to_host: ${MYSQL_HOST}
-    to_port: ${MYSQL_PORT:3306}
-
 logging:
   level:
     ROOT: INFO
 #    pers.wuyou.robot: DEBUG
+music:
+  tencent:
+    account: ${QQ_UIN}
+    password: ${QQ_PWD}
+  netEase:
+    account: ${NET_EASE_UIN}
+    password: ${NET_EASE_PWD}
+    server-host: http://82.156.174.44:3000/
+
+robot:
+  host: http://robot.wuyourj.club/

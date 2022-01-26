@@ -18,7 +18,7 @@ import pers.wuyou.robot.core.annotation.RobotListen;
 public class RecallListener {
     @RobotListen(GroupMsg.class)
     @Filter(value = "撤回", trim = true)
-    @Priority(PriorityConstant.CORE_LAST)
+    @Priority(PriorityConstant.LAST)
     public void recall(GroupMsg msg) {
         final Neko quote = msg.getMsgContent().getCats("quote").get(0);
         final String id = quote.get("id");

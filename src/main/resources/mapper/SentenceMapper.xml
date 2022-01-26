@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="pers.wuyou.robot.entertainment.mapper.SentenceMapper">
+    <select id="getRandomOne" resultType="pers.wuyou.robot.entertainment.entity.Sentence">
+#         SELECT * FROM `sentence`
+#         WHERE id >= (SELECT floor( RAND() * ((SELECT MAX(id) FROM `sentence`)-(SELECT MIN(id) FROM `sentence`)) + (SELECT MIN(id) FROM `sentence`)))
+#         ORDER BY id LIMIT 1;
+        SELECT * FROM `sentence` ORDER BY RAND() LIMIT 1
+    </select>
+</mapper>

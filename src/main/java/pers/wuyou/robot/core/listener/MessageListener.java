@@ -1,12 +1,14 @@
 package pers.wuyou.robot.core.listener;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import love.forte.common.ioc.annotation.Beans;
 import love.forte.simbot.annotation.ContextValue;
 import love.forte.simbot.annotation.ListenGroup;
-import love.forte.simbot.annotation.Listener;
 import love.forte.simbot.annotation.Priority;
+import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MessageGet;
 import love.forte.simbot.api.message.events.MessageRecallEventGet;
+import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.constant.PriorityConstant;
 import pers.wuyou.robot.core.annotation.ContextType;
 import pers.wuyou.robot.core.annotation.RobotListen;
@@ -18,7 +20,7 @@ import pers.wuyou.robot.core.service.MessageService;
  *
  * @author wuyou
  */
-@Listener
+@Beans
 @ListenGroup("core")
 public class MessageListener {
     private final MessageService messageService;
@@ -28,13 +30,15 @@ public class MessageListener {
     }
 
     @RobotListen(MessageGet.class)
-    @Priority(PriorityConstant.CORE_FIRST)
+    @Priority(PriorityConstant.LAST)
     public void saveMessage(MessageGet msgGet, @ContextValue(ContextType.MESSAGE_ENTITY) Message message) {
-        messageService.save(message);
+        if (msgGet instanceof PrivateMsg || msgGet instanceof GroupMsg) {
+            messageService.save(message);
+        }
     }
 
     @RobotListen(MessageRecallEventGet.class)
-    @Priority(PriorityConstant.CORE_SECOND)
+    @Priority(PriorityConstant.LAST)
     public void messageRecall(MessageRecallEventGet msgGet) {
         final LambdaQueryWrapper<Message> queryWrapper = new LambdaQueryWrapper<Message>().eq(Message::getMessageId, msgGet.getId().substring(4));
         final Message message = messageService.getOne(queryWrapper);
