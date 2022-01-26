@@ -22,6 +22,7 @@ import pers.wuyou.robot.music.service.MusicSearchService;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author wuyou
@@ -30,7 +31,7 @@ import java.util.List;
 public class MusicListener {
 
     private static final String NET_EASE_PREFIX = "网易";
-    private static final String QQ_PREFIX = "Tencent";
+    private static final String QQ_PREFIX = "qq";
     private final BaseMusicService musicSearchService;
     private final MusicInfoService musicInfoService;
     @Value("${robot.host}")
@@ -50,9 +51,9 @@ public class MusicListener {
                       ListenerContext listenerContext) {
         List<MusicInfo> musicInfoList;
         // 根据前缀搜索歌曲
-        if (message.startsWith(NET_EASE_PREFIX)) {
+        if (message.toLowerCase(Locale.ROOT).startsWith(NET_EASE_PREFIX)) {
             musicInfoList = musicSearchService.search(name, BaseMusicService.SearchService.NET_EASE);
-        } else if (message.startsWith(QQ_PREFIX)) {
+        } else if (message.toLowerCase(Locale.ROOT).startsWith(QQ_PREFIX)) {
             musicInfoList = musicSearchService.search(name, BaseMusicService.SearchService.QQ);
         } else {
             musicInfoList = musicSearchService.search(name);
