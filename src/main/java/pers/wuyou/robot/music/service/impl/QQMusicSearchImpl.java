@@ -315,7 +315,6 @@ public class QQMusicSearchImpl implements MusicSearchService {
             }
             QQ_MUSIC_COOKIE.putAll(cookies1);
             QQ_MUSIC_COOKIE.put(NOW_TIME, System.currentTimeMillis() + "");
-            log.info("Tencent music login success!");
             return true;
         }
         log.warn("qq music login fail, Code is empty!");

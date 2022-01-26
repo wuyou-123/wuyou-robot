@@ -46,6 +46,8 @@ logging:
   level:
     ROOT: INFO
 #    pers.wuyou.robot: DEBUG
+
+# 点歌功能配置
 music:
   tencent:
     account: ${QQ_UIN}
@@ -54,6 +56,6 @@ music:
     account: ${NET_EASE_UIN}
     password: ${NET_EASE_PWD}
     server-host: http://82.156.174.44:3000/
-
+# 项目域名
 robot:
   host: http://robot.wuyourj.club/

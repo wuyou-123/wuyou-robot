@@ -3,8 +3,8 @@ package pers.wuyou.robot.core.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MessageGet;
 import love.forte.simbot.api.message.events.MessageRecallEventGet;
@@ -19,8 +19,8 @@ import java.util.Date;
  *
  * @author wuyou
  */
-@Data
-@NoArgsConstructor
+@Getter
+@Setter
 public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
     /**
@@ -120,6 +120,24 @@ public class Message implements Serializable {
         }
         this.isRecall = true;
         this.recallTime = new Date(msgGet.getRecallTime());
+    }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "id=" + id +
+                ", messageId='" + messageId + '\'' +
+                ", accountCode='" + accountCode + '\'' +
+                ", groupCode='" + groupCode + '\'' +
+                ", flag='" + flag + '\'' +
+                ", type=" + type +
+                ", messageText='" + messageText + '\'' +
+                ", content='" + content + '\'' +
+                ", sendTime=" + sendTime +
+                ", isRecall=" + isRecall +
+                ", recallTime=" + recallTime +
+                ", recallAccountCode='" + recallAccountCode + '\'' +
+                '}';
     }
 
     @SuppressWarnings("unused")

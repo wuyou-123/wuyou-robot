@@ -11,7 +11,6 @@ import love.forte.simbot.bot.BotManager;
 import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.events.MemberJoinEvent;
 import net.mamoe.mirai.event.events.MemberLeaveEvent;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -20,6 +19,7 @@ import pers.wuyou.robot.core.entity.GroupBootState;
 import pers.wuyou.robot.core.service.GroupBootStateService;
 import pers.wuyou.robot.core.util.CatUtil;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("unused")
 @Order(1)
 @Component
-public class RobotCore implements CommandLineRunner {
+public class RobotCore {
     /**
      * 项目名
      */
@@ -159,10 +159,17 @@ public class RobotCore implements CommandLineRunner {
         return botManager.getDefaultBot().getBotInfo().getAccountCode();
     }
 
+    @PostConstruct
+    public void init() {
+        setApplicationContext();
+        initGroupBootMap();
+        initIndex();
+    }
+
     /**
      * 初始化成员索引
      */
-    public void initIndex() {
+    private void initIndex() {
         // 为了避免监听和其他simbot监听冲突, 这里使用注册Mirai的监听
         GlobalEventChannel.INSTANCE.subscribeAlways(MemberJoinEvent.class, event -> {
             // 有新成员进群, 添加成员索引
@@ -214,13 +221,6 @@ public class RobotCore implements CommandLineRunner {
             }
             log.info("Synchronization group member index success.");
         });
-    }
-
-    @Override
-    public void run(String... args) {
-        setApplicationContext();
-        initGroupBootMap();
-        initIndex();
     }
 
     private void initGroupBootMap() {
