@@ -24,7 +24,7 @@ public class MusicServiceImpl extends BaseMusicService {
 
     public MusicServiceImpl(MusicInfoService musicInfoService) {
         this.musicInfoService = musicInfoService;
-        this.musicPath = RobotCore.PROJECT_PATH + "music" + File.separator;
+        this.musicPath = RobotCore.PROJECT_PATH + TYPE_NAME + File.separator;
     }
 
     @Override
@@ -91,10 +91,9 @@ public class MusicServiceImpl extends BaseMusicService {
     private void initServices() {
         if (musicSearchServiceList == null) {
             musicSearchServiceList = new ArrayList<>();
-            for (SearchService service : SearchService.values()) {
+            for (SearchService service : Arrays.stream(SearchService.values()).sorted(Comparator.comparingInt(SearchService::getPriority)).collect(Collectors.toList())) {
                 musicSearchServiceList.add(service.getMusicSearchServiceClass());
             }
-            musicSearchServiceList.sort(Comparator.comparingInt(MusicSearchService::getPriority));
         }
     }
 }

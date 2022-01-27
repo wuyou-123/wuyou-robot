@@ -86,9 +86,7 @@ public class HttpUtil {
      * @param url 请求的URL
      */
     public static RequestEntity get(String url) {
-        Map<String, String> cookies = new HashMap<>(0);
-        Map<String, String> params = new HashMap<>(0);
-        return get(url, params, cookies);
+        return get(url, null, null);
     }
 
     /**
@@ -99,12 +97,27 @@ public class HttpUtil {
      * @param cookies 请求携带的cookie
      */
     public static RequestEntity get(String url, Map<String, String> params, Map<String, String> cookies) {
+        return get(url, params, cookies, null);
+    }
+
+    /**
+     * get请求
+     *
+     * @param url     请求的URL
+     * @param params  请求的参数
+     * @param cookies 请求携带的cookie
+     * @param headers 请求头
+     */
+    public static RequestEntity get(String url, Map<String, String> params, Map<String, String> cookies, Map<String, String> headers) {
         try {
             URIBuilder uriBuilder = new URIBuilder(url);
             if (params != null) {
                 params.forEach(uriBuilder::addParameter);
             }
             HttpGet httpGet = new HttpGet(uriBuilder.build());
+            if (headers != null) {
+                headers.forEach(httpGet::setHeader);
+            }
             setCookies(httpGet, cookies);
             return request(httpGet);
 

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import pers.wuyou.robot.music.entity.MusicInfo;
+import pers.wuyou.robot.music.service.BaseMusicService;
 import pers.wuyou.robot.music.service.MusicInfoService;
 
 import javax.servlet.http.HttpServletResponse;
@@ -33,7 +34,7 @@ public class MusicController {
             response.setStatus(404);
             return;
         }
-        final File file = new File("music" + File.separator + musicInfo.getFileName());
+        final File file = new File(BaseMusicService.TYPE_NAME + File.separator + musicInfo.getFileName());
         if (!file.exists()) {
             response.setStatus(404);
             return;

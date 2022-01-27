@@ -63,6 +63,10 @@ public class MusicInfo implements Serializable {
      */
     private String fileName;
     /**
+     * 是否要付费播放
+     */
+    private boolean payPlay;
+    /**
      * 跳转链接
      */
     @NotNull

@@ -3,15 +3,12 @@ package pers.wuyou.robot.music.service.impl;
 import cn.hutool.core.util.URLUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import pers.wuyou.robot.core.util.HttpUtil;
 import pers.wuyou.robot.music.config.MusicProperties;
 import pers.wuyou.robot.music.entity.MusicInfo;
 import pers.wuyou.robot.music.service.BaseMusicService;
-import pers.wuyou.robot.music.service.MusicInfoService;
 import pers.wuyou.robot.music.service.MusicSearchService;
 
 import java.util.ArrayList;
@@ -21,6 +18,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * 网易云音乐实现
+ *
  * @author wuyou
  */
 @Service("NetEaseMusicSearchImpl")
@@ -40,14 +39,12 @@ public class NetEaseMusicSearchImpl implements MusicSearchService {
     private final String pwd;
     private final String serverHost;
     private final BaseMusicService baseMusicService;
-    private final MusicInfoService musicInfoService;
 
-    public NetEaseMusicSearchImpl(MusicProperties musicProperties, BaseMusicService baseMusicService, MusicInfoService musicInfoService) {
+    public NetEaseMusicSearchImpl(MusicProperties musicProperties, BaseMusicService baseMusicService) {
         this.uin = musicProperties.getNetEase().getAccount();
         this.pwd = musicProperties.getNetEase().getPassword();
         this.serverHost = musicProperties.getNetEase().getServerHost();
         this.baseMusicService = baseMusicService;
-        this.musicInfoService = musicInfoService;
     }
 
     @Override
@@ -63,18 +60,6 @@ public class NetEaseMusicSearchImpl implements MusicSearchService {
         log.info("NetEase login fail.");
         log.info(json.toJSONString());
         return false;
-    }
-
-    @NotNull
-    @Override
-    public Integer getPriority() {
-        return 1;
-    }
-
-    @NotNull
-    @Override
-    public String getType() {
-        return BaseMusicService.SearchService.NET_EASE.getType();
     }
 
     @Override
@@ -120,7 +105,7 @@ public class NetEaseMusicSearchImpl implements MusicSearchService {
     }
 
     @Override
-    public void download(final MusicInfo musicInfo) {
+    public String download(final MusicInfo musicInfo) {
         for (Integer br : BR_ARRAY) {
             final String url = serverHost + String.format(MUSIC_DOWNLOAD_URL, musicInfo.getMid(), br);
             final JSONObject json = get(url).getJSONResponse();
@@ -128,14 +113,11 @@ public class NetEaseMusicSearchImpl implements MusicSearchService {
             if (downloadUrl == null) {
                 continue;
             }
-            String fileName = downloadUrl.substring(downloadUrl.lastIndexOf("."));
+            String fileName = downloadUrl.substring(downloadUrl.lastIndexOf("/"));
             final boolean downloadSuccess = HttpUtil.downloadFile(downloadUrl, baseMusicService.getMusicPath() + fileName);
-            if (downloadSuccess) {
-                musicInfo.setFileName(fileName);
-                musicInfoService.update(musicInfo, new LambdaQueryWrapper<MusicInfo>().eq(MusicInfo::getMid, musicInfo.getMid()));
-            }
-            return;
+            return downloadSuccess ? fileName : null;
         }
+        return null;
     }
 
     private HttpUtil.RequestEntity get(String url) {

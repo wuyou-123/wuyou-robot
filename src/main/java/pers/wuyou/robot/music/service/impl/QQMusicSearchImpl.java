@@ -3,10 +3,8 @@ package pers.wuyou.robot.music.service.impl;
 import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
@@ -16,7 +14,6 @@ import pers.wuyou.robot.core.util.*;
 import pers.wuyou.robot.music.config.MusicProperties;
 import pers.wuyou.robot.music.entity.MusicInfo;
 import pers.wuyou.robot.music.service.BaseMusicService;
-import pers.wuyou.robot.music.service.MusicInfoService;
 import pers.wuyou.robot.music.service.MusicSearchService;
 
 import java.io.File;
@@ -29,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
+ * QQ音乐实现
+ *
  * @author wuyou
  */
 @Service("QQMusicSearchImpl")
@@ -45,8 +44,7 @@ public class QQMusicSearchImpl implements MusicSearchService {
     private static final String MUSIC_DOWNLOAD_JSON = "{\"req\":{\"module\":\"vkey.GetVkeyServer\",\"method\":\"CgiGetVkey\",\"param\":{\"guid\":\"g\",\"filename\":[\"%s\"],\"songmid\":[\"%s\"],\"platform\":\"20\"}},\"comm\":{\"uin\":0,\"format\":\"json\",\"cv\":0}}";
     private static final String MUSIC_PLAY_URL = "https://dl.stream.qqmusic.qq.com/%s";
     private static final String MUSIC_JUMP_URL = "https://y.qq.com/n/ryqq/songDetail/%s";
-    private static final Map<String, String> QQ_MUSIC_COOKIE = new HashMap<>();
-    private static final String TYPE_NAME = "music";
+    private static final Map<String, String> COOKIE = new HashMap<>();
     private static final String JS_FILE_NAME = "getQQMusicAuth.js";
     private static final String PY_FILE_NAME = "getQQMusicAuth.py";
     private static final String JS_FILE_PATH;
@@ -55,13 +53,13 @@ public class QQMusicSearchImpl implements MusicSearchService {
 
     static {
         try {
-            InputStream in = QQMusicSearchImpl.class.getClassLoader().getResourceAsStream(TYPE_NAME + File.separator + JS_FILE_NAME);
-            InputStream in2 = QQMusicSearchImpl.class.getClassLoader().getResourceAsStream(TYPE_NAME + File.separator + PY_FILE_NAME);
+            InputStream in = QQMusicSearchImpl.class.getClassLoader().getResourceAsStream(BaseMusicService.TYPE_NAME + File.separator + JS_FILE_NAME);
+            InputStream in2 = QQMusicSearchImpl.class.getClassLoader().getResourceAsStream(BaseMusicService.TYPE_NAME + File.separator + PY_FILE_NAME);
             if (in == null || in2 == null) {
                 throw new ResourceNotFoundException();
             }
-            JS_FILE_PATH = FileUtil.saveTempFile(in, JS_FILE_NAME, TYPE_NAME);
-            PY_FILE_PATH = FileUtil.saveTempFile(in2, PY_FILE_NAME, TYPE_NAME);
+            JS_FILE_PATH = FileUtil.saveTempFile(in, JS_FILE_NAME, BaseMusicService.TYPE_NAME);
+            PY_FILE_PATH = FileUtil.saveTempFile(in2, PY_FILE_NAME, BaseMusicService.TYPE_NAME);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResourceNotFoundException();
@@ -71,18 +69,16 @@ public class QQMusicSearchImpl implements MusicSearchService {
     private final String uin;
     private final String pwd;
     private final BaseMusicService baseMusicService;
-    private final MusicInfoService musicInfoService;
     private boolean isWaitScan;
 
-    public QQMusicSearchImpl(MusicProperties musicProperties, BaseMusicService baseMusicService, MusicInfoService musicInfoService) {
+    public QQMusicSearchImpl(MusicProperties musicProperties, BaseMusicService baseMusicService) {
         this.uin = musicProperties.getTencent().getAccount();
         this.pwd = musicProperties.getTencent().getPassword();
         this.baseMusicService = baseMusicService;
-        this.musicInfoService = musicInfoService;
     }
 
     private static String getGtk() {
-        String sKey = QQ_MUSIC_COOKIE.get("p_skey");
+        String sKey = COOKIE.get("p_skey");
         int hash = 5381;
         for (int i = 0, len = sKey.length(); i < len; ++i) {
             hash += (hash << 5) + sKey.charAt(i);
@@ -101,7 +97,7 @@ public class QQMusicSearchImpl implements MusicSearchService {
     private static void getScanCookies() {
         String url = "https://xui.ptlogin2.qq.com/cgi-bin/xlogin?appid=716027609&target=self&style=40&s_url=https://y.qq.com/";
         HttpUtil.RequestEntity requestEntity = HttpUtil.get(url);
-        QQ_MUSIC_COOKIE.putAll(requestEntity.getCookies());
+        COOKIE.putAll(requestEntity.getCookies());
     }
 
     /**
@@ -114,8 +110,8 @@ public class QQMusicSearchImpl implements MusicSearchService {
         getScanCookies();
         String url1 = String.format("https://ssl.ptlogin2.qq.com/ptqrshow?appid=716027609&e=2&l=M&s=3&d=72&v=4&t=%s&pt_3rd_aid=0", now);
         HttpUtil.RequestEntity requestEntity = HttpUtil.get(url1);
-        QQ_MUSIC_COOKIE.putAll(requestEntity.getCookies());
-        QQ_MUSIC_COOKIE.put("key", now);
+        COOKIE.putAll(requestEntity.getCookies());
+        COOKIE.put("key", now);
 
         byte[] bytes = requestEntity.getEntity();
         try (FileOutputStream fileOutputStream = new FileOutputStream(RobotCore.TEMP_PATH + now)) {
@@ -132,7 +128,7 @@ public class QQMusicSearchImpl implements MusicSearchService {
      * @return 返回的登录实体
      */
     private static HttpUtil.RequestEntity getLoginState() {
-        Map<String, String> map = QQ_MUSIC_COOKIE;
+        Map<String, String> map = COOKIE;
         String urlCheckTimeout =
                 "https://ssl.ptlogin2.qq.com/ptqrlogin?u1=https://y.qq.com/&ptqrtoken=" + getPtqrtoken(map.get("qrsig"))
                         + "&ptredirect=0&h=1&t=1&g=1&from_ui=1&ptlang=2052&action=0-0-" + map.get("key")
@@ -156,23 +152,11 @@ public class QQMusicSearchImpl implements MusicSearchService {
         return e;
     }
 
-    @NotNull
-    @Override
-    public Integer getPriority() {
-        return 0;
-    }
-
-    @NotNull
-    @Override
-    public String getType() {
-        return BaseMusicService.SearchService.QQ.getType();
-    }
-
     @Override
     public List<MusicInfo> search(String name) {
         final Map<String, String> data = new HashMap<>(2);
         data.put("data", String.format(SEARCH_URL, name.trim()));
-        JSONObject json = HttpUtil.get(MUSIC_U_FCG, data, QQ_MUSIC_COOKIE).getJSONResponse();
+        JSONObject json = HttpUtil.get(MUSIC_U_FCG, data, COOKIE).getJSONResponse();
         JSONArray jsonArray = json.getJSONObject("req").getJSONObject("data").getJSONObject("body").getJSONObject("song").getJSONArray("list");
         List<MusicInfo> list = new ArrayList<>();
         for (int i = 0; i < jsonArray.size(); i++) {
@@ -187,6 +171,7 @@ public class QQMusicSearchImpl implements MusicSearchService {
                 return object.getString("name");
             }).collect(Collectors.toList());
             String artists = String.join("&", artistList);
+            boolean payPlay = jsonObject.getJSONObject("pay").getBoolean("pay_play");
             final Map<String, String> data1 = new HashMap<>(2);
             data1.put("data", String.format(MUSIC_JSON, mid));
             final String purl = getPurl(data1);
@@ -210,6 +195,7 @@ public class QQMusicSearchImpl implements MusicSearchService {
                     .subtitle(subtitle)
                     .jumpUrl(jumpUrl)
                     .musicUrl(musicUrl)
+                    .payPlay(payPlay)
                     .build());
         }
         return list;
@@ -221,11 +207,11 @@ public class QQMusicSearchImpl implements MusicSearchService {
     }
 
     private String getPurl(Map<String, String> data) {
-        return HttpUtil.get(MUSIC_U_FCG, data, QQ_MUSIC_COOKIE).getJSONResponse().getJSONObject("req").getJSONObject("data").getJSONArray("midurlinfo").getJSONObject(0).getString("purl");
+        return HttpUtil.get(MUSIC_U_FCG, data, COOKIE).getJSONResponse().getJSONObject("req").getJSONObject("data").getJSONArray("midurlinfo").getJSONObject(0).getString("purl");
     }
 
     @Override
-    public void download(final MusicInfo musicInfo) {
+    public String download(final MusicInfo musicInfo) {
         final String musicUrl = musicInfo.getMusicUrl();
         final String name = musicUrl.substring(musicUrl.indexOf(Br.M4A.getPrefix()) + Br.M4A.getPrefix().length(), musicUrl.indexOf(Br.M4A.getEnd()));
         final Map<String, String> data = new HashMap<>(2);
@@ -239,28 +225,25 @@ public class QQMusicSearchImpl implements MusicSearchService {
             }
             String downloadUrl = String.format(MUSIC_PLAY_URL, purl);
             final boolean downloadSuccess = HttpUtil.downloadFile(downloadUrl, baseMusicService.getMusicPath() + fileName);
-            if (downloadSuccess) {
-                musicInfo.setFileName(fileName);
-                musicInfoService.update(musicInfo, new LambdaQueryWrapper<MusicInfo>().eq(MusicInfo::getMid, musicInfo.getMid()));
-            }
-            return;
+            return downloadSuccess ? fileName : null;
         }
+        return null;
     }
 
     private boolean cookieIsExpires() {
-        if (QQ_MUSIC_COOKIE.get(NOW_TIME) == null) {
+        if (COOKIE.get(NOW_TIME) == null) {
             return true;
         }
-        final long time = (Long.parseLong(QQ_MUSIC_COOKIE.get(NOW_TIME)));
+        final long time = (Long.parseLong(COOKIE.get(NOW_TIME)));
         return System.currentTimeMillis() - time > TimeUnit.HOURS.toMillis(10);
     }
 
     @Override
     public boolean login() {
-        QQ_MUSIC_COOKIE.clear();
+        COOKIE.clear();
         final HttpUtil.RequestEntity requestEntity = HttpUtil.get(String.format(CHECK, uin));
         final String response = requestEntity.getResponse();
-        QQ_MUSIC_COOKIE.putAll(requestEntity.getCookies());
+        COOKIE.putAll(requestEntity.getCookies());
         final String[] resultArray = getResultArray(response);
         final List<String> list = CommandUtil.exec("node", JS_FILE_PATH, uin, pwd, resultArray[1], resultArray[3], resultArray[5], resultArray[6]);
         if (list.isEmpty()) {
@@ -271,7 +254,7 @@ public class QQMusicSearchImpl implements MusicSearchService {
         final String url = list.get(0);
         final HttpUtil.RequestEntity requestEntity1 = HttpUtil.get(url);
         final String response1 = requestEntity1.getResponse();
-        QQ_MUSIC_COOKIE.putAll(requestEntity1.getCookies());
+        COOKIE.putAll(requestEntity1.getCookies());
         final String[] resultArray1 = getResultArray(response1);
         log.info(Arrays.toString(resultArray1));
         // 登录成功返回code
@@ -296,8 +279,8 @@ public class QQMusicSearchImpl implements MusicSearchService {
 
     private boolean getCookies(String s) {
         final Map<String, String> cookies = HttpUtil.get(s).getCookies();
-        QQ_MUSIC_COOKIE.putAll(cookies);
-        final List<String> list1 = CommandUtil.exec("python", PY_FILE_PATH, QQ_MUSIC_COOKIE.get("p_uin"), QQ_MUSIC_COOKIE.get("p_skey"), QQ_MUSIC_COOKIE.get("pt_oauth_token"));
+        COOKIE.putAll(cookies);
+        final List<String> list1 = CommandUtil.exec("python", PY_FILE_PATH, COOKIE.get("p_uin"), COOKIE.get("p_skey"), COOKIE.get("pt_oauth_token"));
         if (list1.isEmpty()) {
             log.warn("python执行失败,请检查是否安装了python环境");
             return false;
@@ -307,14 +290,14 @@ public class QQMusicSearchImpl implements MusicSearchService {
         final String code = url2.substring(url2.indexOf("code=") + 5);
         if (!code.isEmpty()) {
             String json = String.format(MUSIC_JSON2, code, getGtk());
-            final HttpUtil.RequestEntity requestEntity2 = HttpUtil.post(MUSIC_U_FCG, json, QQ_MUSIC_COOKIE);
+            final HttpUtil.RequestEntity requestEntity2 = HttpUtil.post(MUSIC_U_FCG, json, COOKIE);
             final Map<String, String> cookies1 = requestEntity2.getCookies();
             if (cookies.isEmpty()) {
                 log.warn("qq music login fail, Cookie is empty!");
                 return false;
             }
-            QQ_MUSIC_COOKIE.putAll(cookies1);
-            QQ_MUSIC_COOKIE.put(NOW_TIME, System.currentTimeMillis() + "");
+            COOKIE.putAll(cookies1);
+            COOKIE.put(NOW_TIME, System.currentTimeMillis() + "");
             return true;
         }
         log.warn("qq music login fail, Code is empty!");
@@ -325,9 +308,9 @@ public class QQMusicSearchImpl implements MusicSearchService {
         if (isWaitScan) {
             return false;
         }
-        QQ_MUSIC_COOKIE.clear();
+        COOKIE.clear();
         final HttpUtil.RequestEntity requestEntity = HttpUtil.get(String.format(CHECK, uin));
-        QQ_MUSIC_COOKIE.putAll(requestEntity.getCookies());
+        COOKIE.putAll(requestEntity.getCookies());
         String path = getLoginQrCode();
         SenderUtil.sendPrivateMsg(RobotCore.getADMINISTRATOR().get(0), CatUtil.getImage(path));
         isWaitScan = true;
@@ -339,8 +322,8 @@ public class QQMusicSearchImpl implements MusicSearchService {
                     if (response.contains("ptuiCB('0'")) {
                         final String url = Arrays.stream(response.split("'")).filter(i -> i.contains("http")).collect(Collectors.toList()).get(0);
                         final HttpUtil.RequestEntity requestEntity1 = HttpUtil.get(url);
-                        QQ_MUSIC_COOKIE.putAll(requestEntity1.getCookies());
-                        QQ_MUSIC_COOKIE.put(NOW_TIME, System.currentTimeMillis() + "");
+                        COOKIE.putAll(requestEntity1.getCookies());
+                        COOKIE.put(NOW_TIME, System.currentTimeMillis() + "");
                         log.info("scan login success.");
                         isWaitScan = false;
                         return true;

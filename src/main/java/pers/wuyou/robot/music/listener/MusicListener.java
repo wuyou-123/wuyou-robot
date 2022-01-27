@@ -23,6 +23,7 @@ import pers.wuyou.robot.music.service.MusicSearchService;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * @author wuyou
@@ -84,15 +85,24 @@ public class MusicListener {
         if (musicInfo == null) {
             return;
         }
+        if (musicInfo.isPayPlay()) {
+            SenderUtil.sendMsg(msgGet, "你要下载的歌为付费播放歌曲, 正在通过其他渠道搜索歌曲~");
+            final List<MusicInfo> infoList = musicSearchService.search(musicInfo.getTitle(), BaseMusicService.SearchService.KU_WO);
+            musicInfo = infoList.stream().filter(MusicInfo::isPayPlay).collect(Collectors.toList()).get(0);
+        }
         final MusicSearchService service = musicInfo.getType().getMusicSearchServiceClass();
         final MusicInfo one = musicInfoService.getOne(new LambdaQueryWrapper<MusicInfo>().eq(MusicInfo::getMid, musicInfo.getMid()));
         one.setMusicUrl(musicInfo.getMusicUrl());
         one.setType(musicInfo.getType());
         musicInfo = one;
-        if (musicInfo.getFileName() != null && FileUtil.exist("music" + File.separator + musicInfo.getFileName())) {
+        if (musicInfo.getFileName() != null && FileUtil.exist(BaseMusicService.TYPE_NAME + File.separator + musicInfo.getFileName())) {
             musicInfo.setFileName(musicInfo.getFileName());
         } else {
-            service.download(musicInfo);
+            final String fileName = service.download(musicInfo);
+            if (fileName != null && !fileName.isEmpty()) {
+                musicInfo.setFileName(fileName);
+                musicInfoService.update(musicInfo, new LambdaQueryWrapper<MusicInfo>().eq(MusicInfo::getMid, musicInfo.getMid()));
+            }
         }
         if (musicInfo.getFileName() == null) {
             SenderUtil.sendMsg(msgGet, "获取下载链接失败,换一个吧~");
@@ -105,16 +115,23 @@ public class MusicListener {
     @RobotListen(value = MessageGet.class, isBoot = true)
     @Filter(value = "^(播放|){{number,\\d+}}$", matchType = MatchType.REGEX_FIND)
     public void play(MessageGet msgGet, @ContextValue(ContextType.QQ) String qq, @FilterValue("number") int number, ListenerContext listenerContext) {
-        final MusicInfo musicInfo = getMusicInfo(qq, number, listenerContext);
+        MusicInfo musicInfo = getMusicInfo(qq, number, listenerContext);
         if (musicInfo == null) {
             return;
+        }
+        final BaseMusicService.SearchService musicInfoType = musicInfo.getType();
+        if (musicInfo.isPayPlay()) {
+            SenderUtil.sendMsg(msgGet, "你点的歌为付费播放歌曲, 正在通过其他渠道搜索歌曲~");
+            final List<MusicInfo> infoList = musicSearchService.search(musicInfo.getTitle(), BaseMusicService.SearchService.KU_WO);
+            musicInfo = infoList.stream().filter(MusicInfo::isPayPlay).collect(Collectors.toList()).get(0);
         }
         if (musicInfo.getPreviewUrl() == null || musicInfo.getPreviewUrl().isEmpty()) {
             musicInfo.setPreviewUrl(musicInfo.getType().getMusicSearchServiceClass().getPreview(musicInfo));
         }
+        musicInfo.setType(musicInfoType);
         SenderUtil.sendMsg(msgGet, CatUtil.getMusic(musicInfo));
         getContext(listenerContext).remove(getKey(qq));
-        musicInfoService.update(musicInfo, new LambdaQueryWrapper<MusicInfo>().eq(MusicInfo::getId, musicInfo.getMid()));
+        musicInfoService.update(musicInfo, new LambdaQueryWrapper<MusicInfo>().eq(MusicInfo::getMid, musicInfo.getMid()));
     }
 
     private MusicInfo getMusicInfo(String qq, int number, ListenerContext listenerContext) {

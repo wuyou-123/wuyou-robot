@@ -1,6 +1,7 @@
 package pers.wuyou.robot.core.util;
 
 import catcode.Neko;
+import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.api.message.MessageContent;
 import love.forte.simbot.api.message.assists.Flag;
 import love.forte.simbot.api.message.events.GroupMsg;
@@ -22,6 +23,7 @@ import java.util.NoSuchElementException;
  * @author admin
  */
 @Component
+@Slf4j
 @SuppressWarnings("unused")
 public class SenderUtil {
     private static Sender sender;
@@ -131,7 +133,13 @@ public class SenderUtil {
             botSendMessage.setIsSent(true);
             botSendMessage.setSendTime(new Date());
         } catch (NoSuchElementException e) {
-            sendPrivateMsg(RobotCore.getADMINISTRATOR().get(0), String.format("尝试给%s[%s]发送消息: %s 失败", type, code, message));
+            String prefix = "尝试给";
+            if (message.startsWith(prefix)) {
+                sendPrivateMsg(RobotCore.getADMINISTRATOR().get(0), String.format("%s%s[%s]发送消息失败, 消息内容已打印到日志中", prefix, type, code));
+                log.error(message);
+            } else {
+                sendPrivateMsg(RobotCore.getADMINISTRATOR().get(0), String.format("%s%s[%s]发送消息: %s 失败", prefix, type, code, message));
+            }
         }
         saveMessage(botSendMessage);
     }
