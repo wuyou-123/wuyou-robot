@@ -7,6 +7,7 @@ import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.api.message.results.GroupMemberInfo;
 import org.springframework.stereotype.Component;
+import pers.wuyou.robot.core.RobotCore;
 import pers.wuyou.robot.core.annotation.ContextType;
 import pers.wuyou.robot.core.annotation.RobotListen;
 import pers.wuyou.robot.core.util.SenderUtil;
@@ -31,7 +32,8 @@ public class LandlordsListener {
 
     @RobotListen(GroupMsg.class)
     @Filter("斗地主")
-    public void start(@ContextValue(ContextType.GROUP) String group, @ContextValue(ContextType.MEMBER) GroupMemberInfo memberInfo) {
+    public void start(GroupMsg msg, @ContextValue(ContextType.GROUP) String group, @ContextValue(ContextType.QQ) String qq) {
+        final GroupMemberInfo memberInfo = RobotCore.getter().getMemberInfo(group, qq);
         Map<String, Object> map = MapUtil.<String, Object>builder()
                 .put(Constant.GROUP_CODE, memberInfo.getGroupInfo().getGroupCode())
                 .put(Constant.ACCOUNT_CODE, memberInfo.getAccountCode())

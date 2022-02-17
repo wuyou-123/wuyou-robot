@@ -13,9 +13,9 @@ headers = {
 }
 
 
-def getGtk(sKey):
+def get_gtk(s_key):
     h = 5381
-    for c in sKey:
+    for c in s_key:
         h += (h << 5) + ord(c)
     return h & 0x7fffffff
 
@@ -27,7 +27,7 @@ data = {
     'redirect_uri': 'https://y.qq.com/portal/wx_redirect.html',
     'response_type': 'code',
     'client_id': '100497308',
-    'g_tk': getGtk(cookies['p_skey'])
+    'g_tk': get_gtk(cookies['p_skey'])
 }
 
 response = requests.post('https://graph.qq.com/oauth2.0/authorize', headers=headers, cookies=cookies, data=data, allow_redirects=False)

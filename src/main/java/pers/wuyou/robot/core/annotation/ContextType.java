@@ -4,10 +4,8 @@ import love.forte.simbot.api.message.MessageContent;
 import love.forte.simbot.api.message.assists.FlagContent;
 import love.forte.simbot.api.message.containers.AccountInfo;
 import love.forte.simbot.api.message.containers.BotInfo;
-import love.forte.simbot.api.message.containers.GroupCodeContainer;
 import love.forte.simbot.api.message.containers.GroupInfo;
 import love.forte.simbot.api.message.events.MessageGet;
-import love.forte.simbot.api.sender.Getter;
 import pers.wuyou.robot.core.entity.Message;
 import pers.wuyou.robot.core.util.CatUtil;
 
@@ -118,12 +116,6 @@ public @interface ContextType {
      * value: {@link CatUtil#getAts(MessageGet)}
      */
     String AT_SET = "atSet";
-    /**
-     * 获取发送消息的成员对象
-     * <p>
-     * value: {@link Getter#getMemberInfo(GroupCodeContainer)}
-     */
-    String MEMBER = "member";
     /**
      * 获取消息的flagId
      * <p>
