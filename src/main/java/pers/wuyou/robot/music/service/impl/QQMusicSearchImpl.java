@@ -268,9 +268,9 @@ public class QQMusicSearchImpl implements MusicSearchService {
                 // 登录成功
                 return getCookies(resultArray1[2]);
             case scanCode:
-                return scanLogin();
             case retry:
-                return login();
+                return scanLogin();
+//                return login();
             default:
                 log.warn("qq music login fail!");
                 return false;
@@ -341,10 +341,21 @@ public class QQMusicSearchImpl implements MusicSearchService {
         return false;
     }
 
+    /**
+     * 支持的几种音乐格式, 用来获取前缀和后缀
+     */
     private enum Br {
-
+        /**
+         * flac格式
+         */
         FLAC("F00000", "flac"),
+        /**
+         * mp3格式
+         */
         MP3("M80000", "mp3"),
+        /**
+         * m4a格式
+         */
         M4A("C40000", "m4a");
         @Getter
         private final String prefix;

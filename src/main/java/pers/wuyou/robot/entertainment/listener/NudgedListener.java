@@ -2,10 +2,8 @@ package pers.wuyou.robot.entertainment.listener;
 
 import catcode.Neko;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import love.forte.simbot.annotation.ContextValue;
-import love.forte.simbot.annotation.Filter;
-import love.forte.simbot.annotation.FilterValue;
-import love.forte.simbot.annotation.Listener;
+import lombok.extern.slf4j.Slf4j;
+import love.forte.simbot.annotation.*;
 import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.component.mirai.message.event.MiraiNudgedEvent;
 import love.forte.simbot.filter.MatchType;
@@ -26,14 +24,15 @@ import java.util.stream.Collectors;
  * @author wuyou
  */
 @Listener
+@Slf4j
 public class NudgedListener {
     private final SentenceService service;
     private final Random random = new Random();
-    private List<String> messageList;
-    private boolean isInit;
+    private final List<String> messageList;
 
     public NudgedListener(SentenceService service) {
         this.service = service;
+        messageList = this.service.list().stream().map(Sentence::getText).collect(Collectors.toList());
     }
 
     @RobotListen(value = MiraiNudgedEvent.ByMember.class, isBoot = true)
@@ -42,10 +41,6 @@ public class NudgedListener {
         final String nekoParam = "target";
         if (!Objects.equals(neko.get(nekoParam), RobotCore.getDefaultBotCode())) {
             return;
-        }
-        if (!isInit) {
-            messageList = this.service.list().stream().map(Sentence::getText).collect(Collectors.toList());
-            isInit = true;
         }
         if (messageList.isEmpty()) {
             return;
@@ -84,6 +79,16 @@ public class NudgedListener {
             } else {
                 SenderUtil.sendPrivateMsg(qq, "fail");
             }
+        }
+    }
+
+    @RobotListen(PrivateMsg.class)
+    @Filter(value = "list", matchType = MatchType.REGEX_FIND)
+    public void listNudgeMessage(
+            @ContextValue(ContextType.QQ) String qq
+    ) {
+        if (RobotCore.getADMINISTRATOR().contains(qq)) {
+            SenderUtil.sendPrivateMsg(qq, String.join("\n", messageList));
         }
     }
 }

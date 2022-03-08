@@ -9,7 +9,6 @@ import love.forte.simbot.api.message.events.MessageGet;
 import love.forte.simbot.api.message.events.MessageRecallEventGet;
 import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.api.message.results.GroupMemberInfo;
-import love.forte.simbot.component.mirai.message.event.MiraiNudgedEvent;
 import love.forte.simbot.intercept.InterceptionType;
 import love.forte.simbot.listener.ListenerContext;
 import love.forte.simbot.listener.ListenerFunction;
@@ -21,7 +20,6 @@ import pers.wuyou.robot.core.RobotCore;
 import pers.wuyou.robot.core.annotation.ContextType;
 import pers.wuyou.robot.core.annotation.RobotListen;
 import pers.wuyou.robot.core.entity.Message;
-import pers.wuyou.robot.core.service.GroupBootStateService;
 import pers.wuyou.robot.core.util.CatUtil;
 import pers.wuyou.robot.core.util.SenderUtil;
 import pers.wuyou.robot.core.util.StringUtil;
@@ -92,14 +90,6 @@ public class RobotListenerInterceptor implements ListenerInterceptor {
         final ListenerFunction listenerFunction = context.getListenerFunction();
         final MsgGet msgGet = context.getMsgGet();
         final RobotListen annotation = listenerFunction.getAnnotation(RobotListen.class);
-        if (msgGet instanceof MiraiNudgedEvent.ByMember) {
-            final String group = ((MiraiNudgedEvent.ByMember) msgGet).getGroupInfo().getGroupCode();
-            if (isBoot(context.getListenerFunction(), annotation, group)) {
-                assert annotation != null;
-                log.info(String.format("执行监听器%s(%s)失败, 当前群未开机", listenerFunction.getName(), annotation.desc()));
-                return false;
-            }
-        }
         if (msgGet instanceof GroupMsg) {
             final GroupMsg groupMsg = (GroupMsg) msgGet;
             if (isBoot(context.getListenerFunction(), annotation, groupMsg.getGroupInfo().getGroupCode())) {

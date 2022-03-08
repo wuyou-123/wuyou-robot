@@ -11,6 +11,7 @@ import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.api.message.results.GroupMemberInfo;
 import love.forte.simbot.api.sender.Getter;
 import pers.wuyou.robot.core.RobotCore;
+import pers.wuyou.robot.core.common.Constant;
 import pers.wuyou.robot.music.entity.MusicInfo;
 
 import java.util.*;
@@ -23,7 +24,7 @@ import java.util.*;
 public class CatUtil {
     public static final CatCodeUtil UTILS = CatCodeUtil.getInstance();
     private static final CodeTemplate<Neko> NEKO_TEMPLATE = UTILS.getNekoTemplate();
-    private static final String CODE = "code";
+    private static final String CODE = Constant.CODE;
     private static Getter getter;
 
     private CatUtil() {

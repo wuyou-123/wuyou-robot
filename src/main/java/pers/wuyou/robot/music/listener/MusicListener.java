@@ -85,7 +85,7 @@ public class MusicListener {
         if (musicInfo == null) {
             return;
         }
-        if (musicInfo.isPayPlay()) {
+        if (musicInfo.isPayPlay() && musicInfo.getMusicUrl().length() < 40) {
             SenderUtil.sendMsg(msgGet, "你要下载的歌为付费播放歌曲, 正在通过其他渠道搜索歌曲~");
             final List<MusicInfo> infoList = musicSearchService.search(musicInfo.getTitle(), BaseMusicService.SearchService.KU_WO);
             musicInfo = infoList.stream().filter(MusicInfo::isPayPlay).collect(Collectors.toList()).get(0);
@@ -120,7 +120,7 @@ public class MusicListener {
             return;
         }
         final BaseMusicService.SearchService musicInfoType = musicInfo.getType();
-        if (musicInfo.isPayPlay()) {
+        if (musicInfo.isPayPlay() && musicInfo.getMusicUrl().length() < 40) {
             SenderUtil.sendMsg(msgGet, "你点的歌为付费播放歌曲, 正在通过其他渠道搜索歌曲~");
             final List<MusicInfo> infoList = musicSearchService.search(musicInfo.getTitle(), BaseMusicService.SearchService.KU_WO);
             musicInfo = infoList.stream().filter(MusicInfo::isPayPlay).collect(Collectors.toList()).get(0);

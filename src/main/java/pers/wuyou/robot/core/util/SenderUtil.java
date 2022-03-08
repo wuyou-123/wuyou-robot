@@ -97,7 +97,7 @@ public class SenderUtil {
      * @param code    群号或QQ号
      * @param message 消息内容
      */
-    private static synchronized void sendMsg(SendType type, String code, String group, String message) {
+    private static void sendMsg(SendType type, String code, String group, String message) {
         final BotSendMessage botSendMessage = BotSendMessage.builder()
                 .content(message)
                 .sendType(type.name())
@@ -145,7 +145,7 @@ public class SenderUtil {
     }
 
     private static void saveMessage(BotSendMessage botSendMessage) {
-        RobotCore.THREAD_POOL.execute(() -> botSendMessageService.save(botSendMessage));
+//        RobotCore.THREAD_POOL.execute(() -> botSendMessageService.save(botSendMessage));
     }
 
     /**
