@@ -60,6 +60,7 @@ public class RobotListenerInterceptor implements ListenerInterceptor {
         }
         if (msgGet instanceof MessageGet) {
             listenerContext.instant(ContextType.MESSAGE, ((MessageGet) msgGet).getMsg());
+            listenerContext.instant(ContextType.TEXT, ((MessageGet) msgGet).getText());
             listenerContext.instant(ContextType.FLAG, ((MessageGet) msgGet).getFlag().getFlag().getId());
             listenerContext.instant(ContextType.MESSAGE_ENTITY, new Message((MessageGet) msgGet));
         }

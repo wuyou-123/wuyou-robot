@@ -8,12 +8,11 @@ import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.api.message.events.GroupMsg;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import pers.wuyou.robot.common.util.TianApiTool;
 import pers.wuyou.robot.core.RobotCore;
 import pers.wuyou.robot.core.annotation.ContextType;
 import pers.wuyou.robot.core.annotation.RobotListen;
-import pers.wuyou.robot.core.common.Constant;
 import pers.wuyou.robot.core.util.CatUtil;
-import pers.wuyou.robot.core.util.HttpUtil;
 import pers.wuyou.robot.core.util.SenderUtil;
 
 import java.util.*;
@@ -27,14 +26,19 @@ import java.util.stream.Collectors;
 public class LookListener {
     private static final Map<String, TreeSet<String>> LOOK_MAP = new HashMap<>();
     private static final Map<String, String> IP_MAP = new HashMap<>();
-    private static final String API_URL = "https://api.tianapi.com/ipquery/index?key=%s&ip=%s";
     private static final Integer IPV4_LENGTH = 4;
     @Value("${robot.ip-host}")
     private String host;
-    @Value("${robot.tianapi-key}")
-    private String tianapiKey;
 
+    private final TianApiTool tianApiTool;
+
+    public LookListener(TianApiTool tianApiTool) {
+        this.tianApiTool = tianApiTool;
+    }
     public void addIp(String ip, String group) {
+        if (LOOK_MAP.get(group) == null) {
+            return;
+        }
         LOOK_MAP.get(group).add(ip);
         final String ipDetail = getIpDetail(ip);
         IP_MAP.put(ip, ipDetail);
@@ -67,18 +71,16 @@ public class LookListener {
     }
 
     private String getIpDetail(String ip) {
-        final JSONObject response = HttpUtil.get(String.format(API_URL, tianapiKey, ip)).getJSONResponse();
-        String successCode = "200";
-        if (!response.getString(Constant.CODE).equals(successCode)) {
+        final JSONObject newslist = tianApiTool.getIpDetailApi(ip);
+        if (newslist == null) {
             return "";
         }
-        final JSONObject newslist = response.getJSONArray("newslist").getJSONObject(0);
         final String province = newslist.getString("province");
         final String city = newslist.getString("city");
         return String.format("%s  %s%n", encryptIp(ip), province.equals(city) ? province : province + "  " + city);
     }
 
-    public String encryptIp(String ip) {
+    private String encryptIp(String ip) {
         final String[] split = ip.split("\\.");
         if (split.length == IPV4_LENGTH) {
             return String.join(".", ListUtil.of(split[0], split[1], "xxx", "xxx"));

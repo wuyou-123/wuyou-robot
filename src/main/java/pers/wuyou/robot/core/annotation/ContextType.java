@@ -32,6 +32,12 @@ public @interface ContextType {
      */
     String MESSAGE = "message";
     /**
+     * 获取发送的消息内容
+     * <p>
+     * value: {@link MessageGet#getText()}
+     */
+    String TEXT = "text";
+    /**
      * 获取bot的账号
      * <p>
      * value: {@link BotInfo#getAccountCode()}
