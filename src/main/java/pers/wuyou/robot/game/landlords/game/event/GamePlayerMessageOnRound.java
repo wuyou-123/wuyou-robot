@@ -1,15 +1,14 @@
 package pers.wuyou.robot.game.landlords.game.event;
 
-import pers.wuyou.robot.game.landlords.GameManager;
-import pers.wuyou.robot.game.landlords.common.Constant;
-import pers.wuyou.robot.game.landlords.common.GameEvent;
-import pers.wuyou.robot.game.landlords.entity.Player;
+import pers.wuyou.robot.game.common.Constant;
+import pers.wuyou.robot.game.landlords.common.LandlordsGameEvent;
+import pers.wuyou.robot.game.landlords.entity.LandlordsPlayer;
+import pers.wuyou.robot.game.landlords.entity.LandlordsRoom;
 import pers.wuyou.robot.game.landlords.entity.PokerSell;
-import pers.wuyou.robot.game.landlords.entity.Room;
-import pers.wuyou.robot.game.landlords.enums.PlayerGameStatus;
+import pers.wuyou.robot.game.landlords.common.LandlordsPlayerGameStatus;
 import pers.wuyou.robot.game.landlords.enums.SellType;
 import pers.wuyou.robot.game.landlords.helper.PokerHelper;
-import pers.wuyou.robot.game.landlords.util.NotifyUtil;
+import pers.wuyou.robot.game.landlords.util.LandlordsNotifyUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
  * @author wuyou
  */
 @SuppressWarnings("unused")
-public class GamePlayerMessageOnRound implements GameEvent {
+public class GamePlayerMessageOnRound implements LandlordsGameEvent {
 
     private static final List<String> CMD_LIST = Arrays.asList("上一页", "下一页");
     private static final int PAGE_SIZE = 10;
@@ -43,8 +42,8 @@ public class GamePlayerMessageOnRound implements GameEvent {
         sellTypeMap.put("炸弹", new SellType[]{SellType.BOMB});
     }
 
-    private List<PokerSell> getNextPagePokerSellList(Player player) {
-        final Map<String, Object> playerDataMap = GameManager.getPlayerDataMap(player);
+    private List<PokerSell> getNextPagePokerSellList(LandlordsPlayer player) {
+        final Map<String, Object> playerDataMap = player.getPlayerDataMap();
         List<PokerSell> list = getList(player);
         int page = (int) playerDataMap.getOrDefault("page", 0);
         if (page * PAGE_SIZE > list.size()) {
@@ -54,8 +53,8 @@ public class GamePlayerMessageOnRound implements GameEvent {
         return list.subList(page * PAGE_SIZE, Math.min(list.size(), (page + 1) * PAGE_SIZE));
     }
 
-    private List<PokerSell> getPrePagePokerSellList(Player player) {
-        final Map<String, Object> playerDataMap = GameManager.getPlayerDataMap(player);
+    private List<PokerSell> getPrePagePokerSellList(LandlordsPlayer player) {
+        final Map<String, Object> playerDataMap = player.getPlayerDataMap();
         List<PokerSell> list = getList(player);
         int page = (int) playerDataMap.getOrDefault("page", 0);
         if (page <= 1) {
@@ -65,8 +64,8 @@ public class GamePlayerMessageOnRound implements GameEvent {
         return list.subList((page - 2) * PAGE_SIZE, Math.min(list.size(), (page - 1) * PAGE_SIZE));
     }
 
-    private List<PokerSell> getList(Player player) {
-        final Map<String, Object> playerDataMap = GameManager.getPlayerDataMap(player);
+    private List<PokerSell> getList(LandlordsPlayer player) {
+        final Map<String, Object> playerDataMap = player.getPlayerDataMap();
         final List<SellType> sellTypes = Arrays.asList((SellType[]) playerDataMap.get(SELL_TYPE));
         List<PokerSell> sells;
         if (player.getRoom().getLastPlayer().equals(player)) {
@@ -86,11 +85,11 @@ public class GamePlayerMessageOnRound implements GameEvent {
     }
 
     @Override
-    public void call(Room room, Map<String, Object> data) {
-        Player player = room.getCurrentPlayer();
+    public void call(LandlordsRoom room, Map<String, Object> data) {
+        LandlordsPlayer player = room.getCurrentPlayer();
         final String message = data.get(Constant.MESSAGE).toString();
         final SellType[] types = sellTypeMap.get(message);
-        final Map<String, Object> playerDataMap = GameManager.getPlayerDataMap(player);
+        final Map<String, Object> playerDataMap = player.getPlayerDataMap();
         if (types == null) {
             parseMessage(player, message);
             return;
@@ -100,17 +99,17 @@ public class GamePlayerMessageOnRound implements GameEvent {
             playerDataMap.put(SELL_TYPE, types);
             playerDataMap.put("page", 0);
             final List<PokerSell> list = getNextPagePokerSellList(player);
-            player.setStatus(PlayerGameStatus.CHOOSE_TIP);
+            player.setStatus(LandlordsPlayerGameStatus.CHOOSE_TIP);
             playerDataMap.put("list", list);
-            NotifyUtil.notifyPlayerChoosePokers(player, list);
+            LandlordsNotifyUtil.notifyPlayerChoosePokers(player, list);
         } else {
-            NotifyUtil.notifyPlayerTypePokerInvalid(player);
+            LandlordsNotifyUtil.notifyPlayerTypePokerInvalid(player);
         }
     }
 
-    private void parseMessage(Player player, String message) {
+    private void parseMessage(LandlordsPlayer player, String message) {
         final SellType[] types = sellTypeMap.get(message);
-        final Map<String, Object> playerDataMap = GameManager.getPlayerDataMap(player);
+        final Map<String, Object> playerDataMap = player.getPlayerDataMap();
         if (CMD_LIST.contains(message)) {
             if (playerDataMap.get(SELL_TYPE) == null) {
                 return;
@@ -121,18 +120,23 @@ public class GamePlayerMessageOnRound implements GameEvent {
             } else {
                 list = getNextPagePokerSellList(player);
             }
-            player.setStatus(PlayerGameStatus.CHOOSE_TIP);
+            player.setStatus(LandlordsPlayerGameStatus.CHOOSE_TIP);
             if (list.isEmpty()) {
-                NotifyUtil.notifyPlayer(player, String.format("没有%s了", message));
-                NotifyUtil.notifyPlayerChoosePokers(player);
+                LandlordsNotifyUtil.notifyPlayer(player, String.format("没有%s了", message));
+                LandlordsNotifyUtil.notifyPlayerChoosePokers(player);
                 return;
             }
             playerDataMap.put("list", list);
-            NotifyUtil.notifyPlayerChoosePokers(player, list);
+            LandlordsNotifyUtil.notifyPlayerChoosePokers(player, list);
             return;
         }
-        if (player.getStatus() == PlayerGameStatus.CHOOSE_TIP) {
-            NotifyUtil.notifyPlayer(player, "请输入一个数字.");
+        if (player.getStatus().equals(LandlordsPlayerGameStatus.CHOOSE_TIP)) {
+            LandlordsNotifyUtil.notifyPlayer(player, "请输入一个数字.");
+            return;
+        }
+        // 发送其他消息
+        if (player.isPrivateMessage()) {
+            LandlordsNotifyUtil.notifyPlayerSpeak(player, message);
         }
     }
 }

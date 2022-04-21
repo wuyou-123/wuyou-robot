@@ -14,6 +14,7 @@ import pers.wuyou.robot.music.service.MusicInfoService;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.nio.file.Files;
 
 /**
  * @author wuyou
@@ -45,7 +46,7 @@ public class MusicController {
         response.setHeader("Content-Disposition", "attachment; filename="+fileName);
         byte[] buff = new byte[1024];
         try (OutputStream outputStream = response.getOutputStream();
-             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+             BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(file.toPath()))) {
             int read = bis.read(buff);
 
             while (read != -1) {

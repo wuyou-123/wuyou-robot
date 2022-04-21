@@ -40,6 +40,9 @@ public class RobotListenerInterceptor implements ListenerInterceptor {
         final MsgGet msgGet = context.getMsgGet();
         final AccountInfo accountInfo = msgGet.getAccountInfo();
         final RobotListen annotation = listenerFunction.getAnnotation(RobotListen.class);
+        if(accountInfo.getAccountCode().equals(RobotCore.getDefaultBotCode())){
+            return InterceptionType.INTERCEPT;
+        }
         if (!isBoot(context)) {
             return InterceptionType.INTERCEPT;
         }

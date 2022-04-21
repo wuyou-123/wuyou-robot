@@ -78,6 +78,7 @@ public class MusicListener {
         SenderUtil.sendMsg(msgGet, stringBuilder.toString());
     }
 
+    @SuppressWarnings("AlibabaUndefineMagicConstant")
     @RobotListen(value = MessageGet.class, isBoot = true)
     @Filter(value = "^下载{{number,\\d+}}$", matchType = MatchType.REGEX_FIND)
     public void download(MessageGet msgGet, @ContextValue(ContextType.QQ) String qq, @FilterValue("number") int number, ListenerContext listenerContext) {
@@ -112,6 +113,7 @@ public class MusicListener {
         }
     }
 
+    @SuppressWarnings("AlibabaUndefineMagicConstant")
     @RobotListen(value = MessageGet.class, isBoot = true)
     @Filter(value = "^(播放|){{number,\\d+}}$", matchType = MatchType.REGEX_FIND)
     public void play(MessageGet msgGet, @ContextValue(ContextType.QQ) String qq, @FilterValue("number") int number, ListenerContext listenerContext) {

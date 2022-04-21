@@ -5,9 +5,6 @@ simbot:
       enable: false
     tips:
       enable: false
-  component:
-    mirai:
-      protocol: ANDROID_PHONE
 server:
   port: 8880
 spring:
@@ -55,9 +52,9 @@ music:
   netEase:
     account: ${NET_EASE_UIN}
     password: ${NET_EASE_PWD}
-    server-host: http://82.156.174.44:3000/
+    server-host: http://netmusic.wuyourj.club/
 # 项目域名
 robot:
   host: http://robot.wuyourj.club/
-  ip-host: http://118.195.154.251:8880/
+  ip-host: http://robot.wuyourj.club/
   tianapi-key: ${TIANAPI_KEY}

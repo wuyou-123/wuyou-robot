@@ -6,8 +6,9 @@ import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.filter.FilterData;
 import love.forte.simbot.filter.ListenerFilter;
 import org.jetbrains.annotations.NotNull;
-import pers.wuyou.robot.game.landlords.GameManager;
-import pers.wuyou.robot.game.landlords.entity.Player;
+import pers.wuyou.robot.game.common.Game;
+import pers.wuyou.robot.game.common.BasePlayer;
+import pers.wuyou.robot.game.landlords.entity.LandlordsPlayer;
 
 /**
  * @author wuyou
@@ -18,13 +19,16 @@ public class LandlordsFilter implements ListenerFilter {
     public boolean test(@NotNull FilterData data) {
         final MsgGet msgGet = data.getMsgGet();
         final String accountCode = msgGet.getAccountInfo().getAccountCode();
-        final Player player = GameManager.getPlayer(accountCode);
+        final BasePlayer<?> player = Game.getPlayer(accountCode);
         if (player == null) {
             return false;
         }
-        if (msgGet instanceof GroupMsg) {
-            return player.getRoomId().equals(((GroupMsg) msgGet).getGroupInfo().getGroupCode());
+        if (player instanceof LandlordsPlayer) {
+            if (msgGet instanceof GroupMsg) {
+                return player.getRoomId().equals(((GroupMsg) msgGet).getGroupInfo().getGroupCode());
+            }
+            return true;
         }
-        return true;
+        return false;
     }
 }

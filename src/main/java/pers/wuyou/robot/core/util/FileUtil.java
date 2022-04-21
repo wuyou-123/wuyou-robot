@@ -4,6 +4,7 @@ import org.springframework.core.io.Resource;
 import pers.wuyou.robot.core.RobotCore;
 
 import java.io.*;
+import java.nio.file.Files;
 
 /**
  * @author wuyou
@@ -31,7 +32,7 @@ public class FileUtil {
             throw new IOException("Destination '" + tempDir + "' cannot be written to");
         }
         try (BufferedInputStream bis = new BufferedInputStream(is);
-             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(temp))) {
+             BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(temp.toPath()))) {
             int len;
             byte[] buf = new byte[10240];
             while ((len = bis.read(buf)) != -1) {

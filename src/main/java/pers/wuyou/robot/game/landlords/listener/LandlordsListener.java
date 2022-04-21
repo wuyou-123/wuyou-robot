@@ -11,14 +11,16 @@ import pers.wuyou.robot.core.RobotCore;
 import pers.wuyou.robot.core.annotation.ContextType;
 import pers.wuyou.robot.core.annotation.RobotListen;
 import pers.wuyou.robot.core.util.SenderUtil;
-import pers.wuyou.robot.game.landlords.GameManager;
-import pers.wuyou.robot.game.landlords.common.Constant;
-import pers.wuyou.robot.game.landlords.common.GameEventManager;
+import pers.wuyou.robot.game.common.Constant;
+import pers.wuyou.robot.game.common.Game;
+import pers.wuyou.robot.game.common.GameEventManager;
+import pers.wuyou.robot.game.common.BaseRoom;
+import pers.wuyou.robot.game.landlords.common.LandlordsGameEventCode;
 import pers.wuyou.robot.game.landlords.common.MessageDispenser;
-import pers.wuyou.robot.game.landlords.entity.Player;
-import pers.wuyou.robot.game.landlords.entity.Room;
-import pers.wuyou.robot.game.landlords.enums.GameEventCode;
-import pers.wuyou.robot.game.landlords.exception.LandLordsException;
+import pers.wuyou.robot.game.landlords.entity.LandlordsPlayer;
+import pers.wuyou.robot.game.landlords.entity.LandlordsRoom;
+import pers.wuyou.robot.game.landlords.common.LandlordsRoomStatus;
+import pers.wuyou.robot.game.landlords.exception.LandlordsException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +32,7 @@ import java.util.Map;
 @ListenGroup("Landlords")
 public class LandlordsListener {
 
-    @RobotListen(GroupMsg.class)
+    @RobotListen(value = GroupMsg.class, isBoot = true)
     @Filter("斗地主")
     public void start(GroupMsg msg, @ContextValue(ContextType.GROUP) String group, @ContextValue(ContextType.QQ) String qq) {
         final GroupMemberInfo memberInfo = RobotCore.getter().getMemberInfo(group, qq);
@@ -39,18 +41,19 @@ public class LandlordsListener {
                 .put(Constant.ACCOUNT_CODE, memberInfo.getAccountCode())
                 .put(Constant.NAME, memberInfo.getAccountRemarkOrNickname())
                 .put(Constant.IGNORE_ROOM, true)
+                .put(Constant.GAME_TYPE, Game.GameType.LANDLORDS)
                 .map();
-        GameEventManager.callIgnoreRoom(GameEventCode.CODE_ROOM_JOIN, map);
+        GameEventManager.callIgnoreRoom(LandlordsGameEventCode.CODE_ROOM_JOIN, map);
 
     }
 
-    @RobotListen(GroupMsg.class)
+    @RobotListen(value = GroupMsg.class, isBoot = true)
     @Filter(value = "重置斗地主", groups = "696525951")
     public void reset(@ContextValue(ContextType.GROUP) String group) {
-        GameManager.reset(group);
+        Game.removeRoom(group, Game.GameType.LANDLORDS);
     }
 
-    @RobotListen(GroupMsg.class)
+    @RobotListen(value = GroupMsg.class, isBoot = true)
     @OnPrivate
     @Filters(customFilter = "landlords")
     public void landlords(MsgGet msgGet, @ContextValue(ContextType.QQ) String qq, @ContextValue(ContextType.GROUP) String group, @ContextValue(ContextType.MESSAGE) String message) {
@@ -60,27 +63,38 @@ public class LandlordsListener {
             data.put(Constant.ACCOUNT_CODE, qq);
             data.put(Constant.IS_PRIVATE_MSG, isPrivateMsg);
             data.put(Constant.MESSAGE, message);
-            Player player = GameManager.getPlayer(qq);
-            player.setCurrentMessageIsPrivate(isPrivateMsg);
-            Room room = GameManager.getRoomByAccountCode(qq);
+            data.put(Constant.GAME_TYPE, Game.GameType.LANDLORDS);
+            final BaseRoom<?> r = Game.getRoom(group, Game.GameType.LANDLORDS);
+            if (r == null) {
+                return;
+            }
+            LandlordsPlayer player = (LandlordsPlayer) r.getPlayer(qq);
+            if (player == null) {
+                return;
+            }
+            player.setPrivateMessage(isPrivateMsg);
+            LandlordsRoom room = (LandlordsRoom) Game.getPlayer(qq).getRoom();
+            boolean isOtherMsg = true;
             switch (room.getStatus()) {
-                case CALL_LANDLORDS:
-                    MessageDispenser.callLandlords(data);
+                case LandlordsRoomStatus.CALL_LANDLORDS:
+                    isOtherMsg = MessageDispenser.callLandlords(data);
                     break;
-                case POKER_PLAY:
-                    MessageDispenser.playerPoker(data);
+                case LandlordsRoomStatus.POKER_PLAY:
+                    isOtherMsg = MessageDispenser.playerPoker(data);
                     break;
-                case NO_START:
-                case PLAYER_READY:
+                case LandlordsRoomStatus.NO_START:
+                case LandlordsRoomStatus.PLAYER_READY:
                     if (isPrivateMsg) {
-                        MessageDispenser.playerReady(data);
+                        isOtherMsg = MessageDispenser.playerReady(data);
                     }
                     break;
                 default:
                     break;
             }
-            MessageDispenser.otherMsg(data);
-        } catch (LandLordsException e) {
+            if (isOtherMsg) {
+                MessageDispenser.otherMsg(data);
+            }
+        } catch (LandlordsException e) {
             SenderUtil.sendGroupMsg(group, e.getMessage());
         }
     }

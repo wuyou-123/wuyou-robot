@@ -1,11 +1,13 @@
 package pers.wuyou.robot.game.landlords.game.event;
 
-import pers.wuyou.robot.game.landlords.GameManager;
-import pers.wuyou.robot.game.landlords.common.Constant;
-import pers.wuyou.robot.game.landlords.common.GameEvent;
-import pers.wuyou.robot.game.landlords.entity.Player;
-import pers.wuyou.robot.game.landlords.entity.Room;
-import pers.wuyou.robot.game.landlords.util.NotifyUtil;
+import pers.wuyou.robot.game.common.Constant;
+import pers.wuyou.robot.game.common.Game;
+import pers.wuyou.robot.game.common.NotifyUtil;
+import pers.wuyou.robot.game.common.BasePlayer;
+import pers.wuyou.robot.game.landlords.common.LandlordsGameEvent;
+import pers.wuyou.robot.game.landlords.entity.LandlordsPlayer;
+import pers.wuyou.robot.game.landlords.entity.LandlordsRoom;
+import pers.wuyou.robot.game.landlords.util.LandlordsNotifyUtil;
 
 import java.util.Map;
 
@@ -15,39 +17,50 @@ import java.util.Map;
  * @author wuyou
  */
 @SuppressWarnings("unused")
-public class GamePlayerJoin implements GameEvent {
+public class GamePlayerJoin implements LandlordsGameEvent {
 
     @Override
-    public void call(Room r, Map<String, Object> data) {
+    public void call(LandlordsRoom r, Map<String, Object> data) {
         String groupCode = data.get(Constant.GROUP_CODE).toString();
         String accountCode = data.get(Constant.ACCOUNT_CODE).toString();
         String name = data.get(Constant.NAME).toString();
-        Player player = GameManager.getPlayer(accountCode);
-        if (player != null) {
-            if (player.isInRoom(groupCode)) {
-                // 玩家在当前房间中
-                NotifyUtil.notifyRoom(groupCode, "已经在房间里了");
+        LandlordsRoom room = (LandlordsRoom) Game.getRoom(groupCode, Game.GameType.LANDLORDS);
+        LandlordsPlayer player = null;
+        BasePlayer<?> p = Game.getPlayer(accountCode);
+        if (p != null) {
+            if (p.getRoom().getGameType() != Game.GameType.LANDLORDS) {
+                // 已在其他房间中
+                NotifyUtil.notifyRoom(groupCode, "当前在其他房间[" + p.getRoom().getName() + "](" + p.getRoomId() + ")中, 请先退出当前房间");
                 return;
+            } else {
+                player = (LandlordsPlayer) p;
             }
-            // 玩家在其他房间中
-            NotifyUtil.notifyRoom(groupCode, "当前在其他房间游戏中, 请先退出当前房间");
-            return;
         }
-        Room room = GameManager.getRoom(groupCode);
         if (room != null) {
-            if (room.getPlayerList().size() == GameManager.MAX_PLAYER_COUNT) {
+            if (room.isFull()) {
                 // 房间已满
-                NotifyUtil.notifyRoom(room, "房间已满");
+                LandlordsNotifyUtil.notifyRoom(room, "房间已满");
                 return;
             }
-            player = GameManager.addPlayer(accountCode, name, room);
-            NotifyUtil.notifyPlayerJoinSuccess(player);
+            if (player != null) {
+                if (player.isInRoom(groupCode)) {
+                    // 玩家在当前房间中
+                    NotifyUtil.notifyRoom(groupCode, "已经在房间里了");
+                    return;
+                }
+                // 玩家在其他房间中
+                NotifyUtil.notifyRoom(groupCode, "当前在其他房间[" + player.getRoom().getName() + "](" + player.getRoomId() + ")中, 请先退出当前房间");
+                return;
+            }
+            player = room.addPlayer(new LandlordsPlayer(accountCode, name, room));
+            LandlordsNotifyUtil.notifyPlayerJoinSuccess(player);
             // 加入房间成功
             return;
         }
-        player = GameManager.addPlayerAndRoom(accountCode, name, groupCode);
+        room = (LandlordsRoom) Game.addRoom(groupCode, Game.GameType.LANDLORDS);
+        player = room.addPlayer(new LandlordsPlayer(accountCode, name, room));
         // 创建房间成功
-        NotifyUtil.notifyPlayerCreateSuccess(player);
+        LandlordsNotifyUtil.notifyPlayerCreateSuccess(player);
     }
 
 }

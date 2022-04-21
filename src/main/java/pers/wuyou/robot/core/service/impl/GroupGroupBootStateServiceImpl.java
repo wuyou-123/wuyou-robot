@@ -42,11 +42,4 @@ public class GroupGroupBootStateServiceImpl extends ServiceImpl<GroupBootStateMa
         groupBootStateMapper.update(groupBootState, wrapper);
     }
 
-    @Override
-    public boolean getGroupState(String groupCode) {
-        LambdaQueryWrapper<GroupBootState> wrapper = new LambdaQueryWrapper<GroupBootState>().eq(GroupBootState::getGroupCode, groupCode);
-        GroupBootState info = groupBootStateMapper.selectOne(wrapper);
-        return info != null && info.getState();
-    }
-
 }

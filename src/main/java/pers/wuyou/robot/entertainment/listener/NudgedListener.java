@@ -3,7 +3,10 @@ package pers.wuyou.robot.entertainment.listener;
 import catcode.Neko;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
-import love.forte.simbot.annotation.*;
+import love.forte.simbot.annotation.ContextValue;
+import love.forte.simbot.annotation.Filter;
+import love.forte.simbot.annotation.FilterValue;
+import love.forte.simbot.annotation.Listener;
 import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.component.mirai.message.event.MiraiNudgedEvent;
 import love.forte.simbot.filter.MatchType;
@@ -17,7 +20,6 @@ import pers.wuyou.robot.entertainment.service.SentenceService;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +29,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class NudgedListener {
     private final SentenceService service;
-    private final Random random = new Random();
     private final List<String> messageList;
 
     public NudgedListener(SentenceService service) {
@@ -46,7 +47,7 @@ public class NudgedListener {
             return;
         }
         final String group = msg.getGroupInfo().getGroupCode();
-        final String text = messageList.get(random.nextInt(messageList.size()));
+        final String text = messageList.get(RobotCore.getRANDOM().nextInt(messageList.size()));
         RobotCore.sender().sendGroupMsg(group, text);
     }
 

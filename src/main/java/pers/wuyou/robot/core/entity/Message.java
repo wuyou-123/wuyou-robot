@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.Setter;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MessageGet;
-import love.forte.simbot.api.message.events.MessageRecallEventGet;
 import love.forte.simbot.api.message.events.PrivateMsg;
 import org.jetbrains.annotations.NotNull;
 
@@ -114,13 +113,13 @@ public class Message implements Serializable {
         throw new IllegalArgumentException();
     }
 
-    public void recall(MessageRecallEventGet msgGet) {
-        if (msgGet.getOperatorInfo() != null) {
-            this.recallAccountCode = msgGet.getOperatorInfo().getAccountCode();
-        }
-        this.isRecall = true;
-        this.recallTime = new Date(msgGet.getRecallTime());
-    }
+///    public void recall(MessageRecallEventGet msgGet) {
+///        if (msgGet.getOperatorInfo() != null) {
+///            this.recallAccountCode = msgGet.getOperatorInfo().getAccountCode();
+///        }
+///        this.isRecall = true;
+///        this.recallTime = new Date(msgGet.getRecallTime());
+///    }
 
     @Override
     public String toString() {

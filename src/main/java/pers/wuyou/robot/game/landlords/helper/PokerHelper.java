@@ -1,23 +1,17 @@
 package pers.wuyou.robot.game.landlords.helper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Component;
-import pers.wuyou.robot.core.exception.ResourceNotFoundException;
 import pers.wuyou.robot.core.util.CatUtil;
 import pers.wuyou.robot.core.util.CommandUtil;
-import pers.wuyou.robot.core.util.FileUtil;
-import pers.wuyou.robot.game.landlords.GameManager;
-import pers.wuyou.robot.game.landlords.entity.Player;
+import pers.wuyou.robot.game.landlords.LandlordsGameManager;
+import pers.wuyou.robot.game.landlords.entity.LandlordsPlayer;
 import pers.wuyou.robot.game.landlords.entity.Poker;
 import pers.wuyou.robot.game.landlords.entity.PokerSell;
 import pers.wuyou.robot.game.landlords.enums.PokerLevel;
 import pers.wuyou.robot.game.landlords.enums.PokerType;
 import pers.wuyou.robot.game.landlords.enums.SellType;
-import pers.wuyou.robot.game.landlords.exception.LandLordsException;
+import pers.wuyou.robot.game.landlords.exception.LandlordsException;
 
 import java.io.File;
 import java.util.*;
@@ -36,6 +30,7 @@ public class PokerHelper {
     private static final List<Poker> BASE_POKERS = new ArrayList<>(54);
     private static final Comparator<Poker> POKER_COMPARATOR = Comparator.comparingInt(o -> o.getLevel().getLevel());
     private static final String SEPARATOR = File.separator;
+    public static final LandlordsGameManager GAME_MANAGER = new LandlordsGameManager();
 
     static {
         PokerLevel[] pokerLevels = PokerLevel.values();
@@ -53,37 +48,6 @@ public class PokerHelper {
                 BASE_POKERS.add(new Poker(level, type));
             }
         }
-        try {
-            if (GameManager.RUNNING_IN_JAR) {
-                ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-                Resource[] resources = resolver.getResources("classpath:**/generatePoker.py");
-                if (resources.length == 0) {
-                    throw new ResourceNotFoundException();
-                }
-                FileUtil.saveResourceToTempDirectory(resources[0], GameManager.GAME_NAME);
-                Resource[] jpgResources = resolver.getResources("classpath:**/poker/*.jpg");
-                if (jpgResources.length == 0) {
-                    throw new ResourceNotFoundException();
-                }
-                for (Resource jpgResource : jpgResources) {
-                    FileUtil.saveResourceToTempDirectory(jpgResource, GameManager.GAME_NAME);
-                }
-            } else {
-                Resource resource = new ClassPathResource(File.separator + GameManager.GAME_NAME);
-                if (!resource.exists()) {
-                    throw new ResourceNotFoundException();
-                }
-                final File file = resource.getFile();
-                final File temp = new File(GameManager.TEMP_PATH);
-                cn.hutool.core.io.FileUtil.copyFilesFromDir(file, temp, true);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new ResourceNotFoundException();
-        }
-    }
-
-    private PokerHelper() {
     }
 
     public static void sortPoker(List<Poker> pokers) {
@@ -524,7 +488,7 @@ public class PokerHelper {
         return builder.toString();
     }
 
-    public static String getPoker(Player player) {
+    public static String getPoker(LandlordsPlayer player) {
         return getPoker(player.getPokers());
     }
 
@@ -558,9 +522,9 @@ public class PokerHelper {
             }
             pokerList.add((b + a).toLowerCase(Locale.ROOT).replace("10", "0"));
         }
-        if (pokerList.size() == 1) {
-            return CatUtil.getImage(GameManager.TEMP_PATH + pokerList.get(0) + ".jpg").toString();
-        }
+//        if (pokerList.size() == 1) {
+//            return CatUtil.getImage(landlordsGameManager.getTempPath() + pokerList.get(0) + ".jpg").toString();
+//        }
         char[] sort = new char[]{'x', 's', '2', '1', 'k', 'q', 'j', '0', '9', '8', '7', '6', '5', '4', '3'};
         char[] sort2 = new char[]{'e', 'a', 'b', 'c', 'd'};
         pokerList.sort((a, b) -> {
@@ -588,15 +552,15 @@ public class PokerHelper {
         });
         String pokerStr = pokerList.toString().replace(" ", "").replace(",", "_");
         pokerStr = pokerStr.substring(1, pokerStr.length() - 1);
-        File pokerDir = new File(GameManager.TEMP_PATH + "poker_comp");
+        File pokerDir = new File(GAME_MANAGER.getTempPath() + "poker_comp");
         if (!pokerDir.exists() && !pokerDir.mkdirs()) {
-            throw new LandLordsException("Destination '" + pokerDir + "' directory cannot be created");
+            throw new LandlordsException("Destination '" + pokerDir + "' directory cannot be created");
         }
         File pokerFile = new File(pokerDir + SEPARATOR + pokerStr + ".jpg");
         if (pokerFile.exists()) {
             return CatUtil.getImage(pokerFile.toString()).toString();
         }
-        CommandUtil.exec("python", pokerList, GameManager.TEMP_PATH + "generatePoker.py", GameManager.TEMP_PATH, pokerFile.toString());
+        CommandUtil.exec("python", pokerList, GAME_MANAGER.getTempPath() + "generatePoker.py", GAME_MANAGER.getTempPath(), pokerFile.toString());
         return CatUtil.getImage(pokerFile.toString()).toString();
     }
 

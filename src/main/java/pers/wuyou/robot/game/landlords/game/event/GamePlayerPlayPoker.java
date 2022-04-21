@@ -1,16 +1,16 @@
 package pers.wuyou.robot.game.landlords.game.event;
 
-import pers.wuyou.robot.game.landlords.common.GameEvent;
-import pers.wuyou.robot.game.landlords.entity.Player;
+import pers.wuyou.robot.game.landlords.common.LandlordsGameEvent;
+import pers.wuyou.robot.game.landlords.entity.LandlordsPlayer;
 import pers.wuyou.robot.game.landlords.entity.Poker;
 import pers.wuyou.robot.game.landlords.entity.PokerSell;
-import pers.wuyou.robot.game.landlords.entity.Room;
-import pers.wuyou.robot.game.landlords.enums.NotifyType;
-import pers.wuyou.robot.game.landlords.enums.PlayerGameStatus;
-import pers.wuyou.robot.game.landlords.enums.RoomStatus;
+import pers.wuyou.robot.game.landlords.entity.LandlordsRoom;
+import pers.wuyou.robot.game.landlords.common.LandlordsNotifyType;
+import pers.wuyou.robot.game.landlords.common.LandlordsPlayerGameStatus;
+import pers.wuyou.robot.game.landlords.common.LandlordsRoomStatus;
 import pers.wuyou.robot.game.landlords.enums.SellType;
 import pers.wuyou.robot.game.landlords.helper.PokerHelper;
-import pers.wuyou.robot.game.landlords.util.NotifyUtil;
+import pers.wuyou.robot.game.landlords.util.LandlordsNotifyUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -21,19 +21,19 @@ import java.util.Map;
  * @author wuyou
  */
 @SuppressWarnings("unused")
-public class GamePlayerPlayPoker implements GameEvent {
+public class GamePlayerPlayPoker implements LandlordsGameEvent {
 
     @Override
-    public void call(Room room, Map<String, Object> data) {
-        Player player = room.getCurrentPlayer();
-        player.setStatus(PlayerGameStatus.CHOOSE);
+    public void call(LandlordsRoom room, Map<String, Object> data) {
+        LandlordsPlayer player = room.getCurrentPlayer();
+        player.setStatus(LandlordsPlayerGameStatus.CHOOSE);
         final Character[] pokerList = (Character[]) data.get("pokerList");
         PokerSell currentPokerShell = data.get("currentPokerShell") != null ? (PokerSell) data.get("currentPokerShell") : null;
         if (currentPokerShell == null) {
             int[] indexes = PokerHelper.getIndexes(pokerList, player.getPokers());
             if (!PokerHelper.checkPokerIndex(indexes, player.getPokers())) {
                 // 出的牌不合法
-                NotifyUtil.notifyPlayerPlayPokerInvalid(player);
+                LandlordsNotifyUtil.notifyPlayerPlayPokerInvalid(player);
                 return;
             }
             List<Poker> currentPokers = PokerHelper.getPoker(indexes, player.getPokers());
@@ -41,7 +41,7 @@ public class GamePlayerPlayPoker implements GameEvent {
         }
         if (currentPokerShell.getSellType() == SellType.ILLEGAL) {
             // 出的牌不合法
-            NotifyUtil.notifyPlayerPlayPokerInvalid(player);
+            LandlordsNotifyUtil.notifyPlayerPlayPokerInvalid(player);
             return;
         }
         // 出的牌合法
@@ -49,35 +49,35 @@ public class GamePlayerPlayPoker implements GameEvent {
             PokerSell lastPokerShell = room.getLastPlayPoker();
             if (!lastPokerShell.match(currentPokerShell) && !currentPokerShell.getSellType().isBomb()) {
                 // 出的牌不匹配
-                NotifyUtil.notifyPlayerPlayPokerMisMatch(player, currentPokerShell);
+                LandlordsNotifyUtil.notifyPlayerPlayPokerMisMatch(player, currentPokerShell);
                 return;
             } else if (lastPokerShell.getScore() >= currentPokerShell.getScore()) {
                 // 出的牌比之前的小
-                NotifyUtil.notifyPlayerPlayPokerLess(player);
+                LandlordsNotifyUtil.notifyPlayerPlayPokerLess(player);
                 return;
             }
         }
-        Player next = player.getNext();
+        LandlordsPlayer next = player.getNext();
 
         room.setLastPlayPoker(currentPokerShell);
         player.getPokers().removeAll(currentPokerShell.getSellPokers());
-        NotifyUtil.notifyPlayPoker(player);
+        LandlordsNotifyUtil.notifyPlayPoker(player);
         if (player.getPokers().isEmpty()) {
             // 游戏结束
-            NotifyUtil.notifyPlayWin(player);
+            LandlordsNotifyUtil.notifyPlayWin(player);
             room.gameEnd();
-            room.setStatus(RoomStatus.NO_START);
+            room.setStatus(LandlordsRoomStatus.NO_START);
         } else {
             room.setLastPlayer(player);
             room.setCurrentPlayer(next);
             // 通知下一位玩家出牌
-            NotifyUtil.notify(next, NotifyType.NOTIFY_PLAYER_PLAY, 2);
-            NotifyUtil.notifyPlayerPokerCount(next);
+            LandlordsNotifyUtil.notify(next, LandlordsNotifyType.NOTIFY_PLAYER_PLAY, 2);
+            LandlordsNotifyUtil.notifyPlayerPokerCount(next);
             room.setCurrentPlayer(next);
-            NotifyUtil.notifyPlayerPlayPoker(next);
+            LandlordsNotifyUtil.notifyPlayerPlayPoker(next);
             List<PokerSell> sells = PokerHelper.validSells(PokerHelper.checkPokerType(room.getLastSellPokers()), next.getPokers());
             if (sells.isEmpty()) {
-                NotifyUtil.notifyPlayerNoPokerBiggerThanEveryone(next);
+                LandlordsNotifyUtil.notifyPlayerNoPokerBiggerThanEveryone(next);
             }
         }
     }

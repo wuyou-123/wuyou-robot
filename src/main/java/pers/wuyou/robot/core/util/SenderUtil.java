@@ -98,6 +98,12 @@ public class SenderUtil {
      * @param message 消息内容
      */
     private static void sendMsg(SendType type, String code, String group, String message) {
+        if (message == null || message.isEmpty()) {
+            return;
+        }
+        if (code == null || code.isEmpty()) {
+            return;
+        }
         final BotSendMessage botSendMessage = BotSendMessage.builder()
                 .content(message)
                 .sendType(type.name())
@@ -106,12 +112,6 @@ public class SenderUtil {
                 .isSent(false)
                 .sendTime(new Date())
                 .build();
-        if (message == null || message.isEmpty()) {
-            return;
-        }
-        if (code == null || code.isEmpty()) {
-            return;
-        }
         try {
             Flag<?> flag = null;
             switch (type) {
@@ -145,6 +145,7 @@ public class SenderUtil {
     }
 
     private static void saveMessage(BotSendMessage botSendMessage) {
+        log.debug(botSendMessage.toString());
 //        RobotCore.THREAD_POOL.execute(() -> botSendMessageService.save(botSendMessage));
     }
 

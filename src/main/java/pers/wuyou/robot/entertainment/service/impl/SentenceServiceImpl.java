@@ -12,14 +12,5 @@ import pers.wuyou.robot.entertainment.service.SentenceService;
  */
 @Service
 public class SentenceServiceImpl extends ServiceImpl<SentenceMapper, Sentence> implements SentenceService {
-    private final SentenceMapper sentenceMapper;
 
-    public SentenceServiceImpl(SentenceMapper sentenceMapper) {
-        this.sentenceMapper = sentenceMapper;
-    }
-
-    @Override
-    public Sentence getRandomOne() {
-        return sentenceMapper.getRandomOne();
-    }
 }

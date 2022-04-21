@@ -17,11 +17,4 @@ public interface GroupBootStateService extends IService<GroupBootState> {
      */
     void setGroupState(String groupCode, boolean state);
 
-    /**
-     * 获取群开关机状态
-     *
-     * @param groupCode 群号
-     * @return 开关机状态
-     */
-    boolean getGroupState(String groupCode);
 }

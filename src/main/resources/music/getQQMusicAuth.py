@@ -7,7 +7,6 @@ cookies = {
     'pt_oauth_token': sys.argv[3],
 }
 
-
 headers = {
     'Content-Type': 'application/x-www-form-urlencoded',
 }

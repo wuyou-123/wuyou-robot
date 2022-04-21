@@ -1,13 +1,13 @@
 package pers.wuyou.robot.game.landlords.common;
 
-import pers.wuyou.robot.game.landlords.GameManager;
-import pers.wuyou.robot.game.landlords.entity.Player;
+import pers.wuyou.robot.game.common.Constant;
+import pers.wuyou.robot.game.common.Game;
+import pers.wuyou.robot.game.common.GameEventManager;
+import pers.wuyou.robot.game.landlords.entity.LandlordsPlayer;
+import pers.wuyou.robot.game.landlords.entity.LandlordsRoom;
 import pers.wuyou.robot.game.landlords.entity.PokerSell;
-import pers.wuyou.robot.game.landlords.entity.Room;
-import pers.wuyou.robot.game.landlords.enums.GameEventCode;
-import pers.wuyou.robot.game.landlords.enums.PlayerGameStatus;
 import pers.wuyou.robot.game.landlords.helper.PokerHelper;
-import pers.wuyou.robot.game.landlords.util.NotifyUtil;
+import pers.wuyou.robot.game.landlords.util.LandlordsNotifyUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,60 +27,60 @@ public class MessageDispenser {
     private MessageDispenser() {
     }
 
-    public static void callLandlords(Map<String, Object> data) {
+    public static boolean callLandlords(Map<String, Object> data) {
         String message = data.get(Constant.MESSAGE).toString().toLowerCase(Locale.ROOT);
         String qq = data.get(Constant.ACCOUNT_CODE).toString();
-        Room room = GameManager.getRoomByAccountCode(qq);
-        final Player currentPlayer = room.getCurrentPlayer();
+        LandlordsRoom room = (LandlordsRoom) Game.getPlayer(qq).getRoom();
+        final LandlordsPlayer currentPlayer = room.getCurrentPlayer();
         if (CALL_LANDLORDS_CMD_LIST.contains(message)) {
             if (currentPlayer != null && currentPlayer.equals(qq)) {
                 data.put("select", true);
-                GameEventManager.call(GameEventCode.CODE_GAME_PLAYER_CALL_LANDLORDS, data);
+                GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAYER_CALL_LANDLORDS, data);
             } else {
-                NotifyUtil.notifyPlayerNotYourRound(GameManager.getPlayer(qq));
+                LandlordsNotifyUtil.notifyPlayerNotYourRound((LandlordsPlayer) Game.getPlayer(qq));
             }
+            return false;
         }
         if (NOT_CALL_LANDLORDS_CMD_LIST.contains(message)) {
             if (currentPlayer != null && currentPlayer.equals(qq)) {
                 data.put("select", false);
-                GameEventManager.call(GameEventCode.CODE_GAME_PLAYER_CALL_LANDLORDS, data);
+                GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAYER_CALL_LANDLORDS, data);
             } else {
-                NotifyUtil.notifyPlayerNotYourRound(GameManager.getPlayer(qq));
+                LandlordsNotifyUtil.notifyPlayerNotYourRound((LandlordsPlayer) Game.getPlayer(qq));
             }
+            return false;
         }
+        return true;
     }
 
-    public static void playerPoker(Map<String, Object> data) {
+    public static boolean playerPoker(Map<String, Object> data) {
         String message = data.get(Constant.MESSAGE).toString().toLowerCase(Locale.ROOT);
         final Character[] pokerList = PokerHelper.parsePoker(message);
         String qq = data.get(Constant.ACCOUNT_CODE).toString();
-        Room room = GameManager.getRoomByAccountCode(qq);
-        final Player currentPlayer = room.getCurrentPlayer();
+        LandlordsRoom room = (LandlordsRoom) Game.getPlayer(qq).getRoom();
+        final LandlordsPlayer currentPlayer = room.getCurrentPlayer();
         if (currentPlayer == null || !currentPlayer.equals(qq)) {
-            if (pokerList != null) {
-                // 现在不是该玩家的回合
-                NotifyUtil.notifyPlayerCantPlay(GameManager.getPlayer(qq));
-            }
-            return;
+            return true;
         }
         data.put("pokerList", pokerList);
-        Player player = GameManager.getPlayer(qq);
-        if (player.getStatus() == PlayerGameStatus.CHOOSE_TIP) {
+        LandlordsPlayer player = (LandlordsPlayer) Game.getPlayer(qq);
+        if (player.getStatus().equals(LandlordsPlayerGameStatus.CHOOSE_TIP)) {
             // 玩家在选择提示内容
             playerChoose(data);
-            return;
+            return false;
         }
         if (pokerList == null) {
             // 发的消息不是任何牌型
             if (PASS_CMD_LIST.contains(message)) {
-                GameEventManager.call(GameEventCode.CODE_GAME_PLAYER_PASS, data);
-                return;
+                GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAYER_PASS, data);
+                return false;
             }
             data.put(Constant.MESSAGE, message);
-            GameEventManager.call(GameEventCode.CODE_GAME_PLAYER_MESSAGE_ON_ROUND, data);
-            return;
+            GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAYER_MESSAGE_ON_ROUND, data);
+            return false;
         }
-        GameEventManager.call(GameEventCode.CODE_GAME_PLAY_POKER, data);
+        GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAY_POKER, data);
+        return false;
 
     }
 
@@ -89,48 +89,55 @@ public class MessageDispenser {
         String message = data.get(Constant.MESSAGE).toString().toLowerCase(Locale.ROOT);
         final Character[] pokerList = PokerHelper.parsePoker(message);
         String qq = data.get(Constant.ACCOUNT_CODE).toString();
-        Player player = GameManager.getPlayer(qq);
+        LandlordsPlayer player = (LandlordsPlayer) Game.getPlayer(qq);
         try {
-            final List<PokerSell> list = (List<PokerSell>) GameManager.getPlayerData(player, "list");
+            final List<PokerSell> list = (List<PokerSell>) player.getPlayerData("list");
             int choose = Integer.parseInt(message);
             if (choose < 1 || choose > list.size()) {
                 if (pokerList != null) {
-                    GameEventManager.call(GameEventCode.CODE_GAME_PLAY_POKER, data);
+                    GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAY_POKER, data);
                     return;
                 }
-                NotifyUtil.notifyPlayer(player, String.format("输入的编号必须是从1到%s.", list.size()));
+                LandlordsNotifyUtil.notifyPlayer(player, String.format("输入的编号必须是从1到%s.", list.size()));
             } else {
                 final PokerSell pokerSell = list.get(choose - 1);
                 data.put("currentPokerShell", pokerSell);
-                GameEventManager.call(GameEventCode.CODE_GAME_PLAY_POKER, data);
+                GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAY_POKER, data);
             }
         } catch (NumberFormatException e) {
             if (pokerList != null) {
-                GameEventManager.call(GameEventCode.CODE_GAME_PLAY_POKER, data);
+                GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAY_POKER, data);
                 return;
             }
             if (PASS_CMD_LIST.contains(message)) {
-                GameEventManager.call(GameEventCode.CODE_GAME_PLAYER_PASS, data);
+                GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAYER_PASS, data);
                 return;
             }
             data.put(Constant.MESSAGE, message);
-            GameEventManager.call(GameEventCode.CODE_GAME_PLAYER_MESSAGE_ON_ROUND, data);
+            GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAYER_MESSAGE_ON_ROUND, data);
         }
     }
 
     public static void otherMsg(Map<String, Object> data) {
         String message = data.get(Constant.MESSAGE).toString().toLowerCase(Locale.ROOT);
         if (EXIT_CMD_LIST.contains(message)) {
-            GameEventManager.call(GameEventCode.CODE_GAME_PLAYER_EXIT, data);
+            GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAYER_EXIT, data);
+            return;
         }
-
+        // 发送房间内消息
+        String accountCode = data.get(Constant.ACCOUNT_CODE).toString();
+        LandlordsPlayer player = (LandlordsPlayer) Game.getPlayer(accountCode);
+        if (player.isPrivateMessage()) {
+            LandlordsNotifyUtil.notifyPlayerSpeak(player, data.get(Constant.MESSAGE).toString());
+        }
     }
 
-    public static void playerReady(Map<String, Object> data) {
+    public static boolean playerReady(Map<String, Object> data) {
         String message = data.get(Constant.MESSAGE).toString().toLowerCase(Locale.ROOT);
         if (READY_CMD_LIST.contains(message)) {
-            GameEventManager.call(GameEventCode.CODE_GAME_PLAYER_READY, data);
+            GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAYER_READY, data);
+            return false;
         }
-
+        return true;
     }
 }

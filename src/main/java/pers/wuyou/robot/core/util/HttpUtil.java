@@ -28,12 +28,13 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import pers.wuyou.robot.core.RobotCore;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +70,7 @@ public class HttpUtil {
 
     public static boolean downloadFile(String url, String path) {
         try (
-                OutputStream output = new FileOutputStream(path);
+                OutputStream output = Files.newOutputStream(Paths.get(path));
                 CloseableHttpResponse closeableHttpResponse = CLOSEABLE_HTTP_CLIENT.execute(new HttpGet(new URIBuilder(url).build()))
         ) {
             closeableHttpResponse.getEntity().writeTo(output);

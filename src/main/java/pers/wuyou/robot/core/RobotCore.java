@@ -48,6 +48,10 @@ public class RobotCore {
      */
     public static final String TEMP_PATH;
     /**
+     * python路径
+     */
+    public static final String PYTHON_PATH;
+    /**
      * 线程池
      */
     public static final ExecutorService THREAD_POOL;
@@ -66,6 +70,11 @@ public class RobotCore {
      */
     private static final Map<String, AccountInfo> MEMBER_INDEX = new HashMap<>();
     /**
+     * 全局随机数
+     */
+    @lombok.Getter
+    private static final Random RANDOM = new Random();
+    /**
      * 全局BotManager
      */
     private static BotManager botManager;
@@ -79,6 +88,12 @@ public class RobotCore {
         PROJECT_NAME = "wuyou-robot";
         PROJECT_PATH = System.getProperty("user.dir") + File.separator;
         TEMP_PATH = System.getProperty("java.io.tmpdir") + File.separator + RobotCore.PROJECT_NAME + File.separator;
+        String pythonEnvPath = "venv";
+        if (new File(PROJECT_PATH + pythonEnvPath).exists()) {
+            PYTHON_PATH = PROJECT_PATH + "venv" + File.separator + "Scripts" + File.separator + "python";
+        } else {
+            PYTHON_PATH = null;
+        }
         THREAD_POOL = new ThreadPoolExecutor(50, 50, 200, TimeUnit.SECONDS, new LinkedBlockingQueue<>(50), r -> {
             Thread thread = new Thread(r);
             thread.setName(String.format("newThread%d", thread.getId()));

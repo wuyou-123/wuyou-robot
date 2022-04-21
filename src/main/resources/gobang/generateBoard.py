@@ -1,0 +1,29 @@
+# coding=UTF-8
+
+import sys
+
+from PIL import Image, ImageDraw, ImageFont
+
+image = Image.open(sys.argv[1])
+width = image.size[0]
+arr = eval(sys.argv[3])
+# 创建绘制对象
+draw = ImageDraw.Draw(image)
+
+for colIndex, colArr in enumerate(arr):
+    font = ImageFont.truetype("consola.ttf", 15, encoding="unic")  # 设置字体
+    for rowIndex, row in enumerate(colArr):
+        x1 = width / 100 * (rowIndex * 6.53 + 1.5)
+        x2 = width / 100 * (colIndex * 6.53 + 1.5)
+        if row != 0:
+            draw.ellipse((x1, x2, x1 + 30, x2 + 30), 'black' if row == 1 else 'white')
+        if rowIndex == 0:
+            draw.text((5, width / 100 * (colIndex * 6.53 + 3)), chr(colIndex + 65), 'black', font)  # 画纵坐标
+    draw.text((width / 100 * (colIndex * 6.53 + 3), 5), str(colIndex), 'black', font)  # 画横坐标
+if len(sys.argv) > 4:
+    current = eval(sys.argv[4])
+    x1 = width / 100 * (current[1] * 6.53 + 1.5)
+    x2 = width / 100 * (current[0] * 6.53 + 1.5)
+    draw.polygon((x1+10, x2+15, x1+15, x2+20, x1+20, x2+15, x1+15, x2+10), 'red', 'red')
+image.save(sys.argv[2])
+# image.show()
