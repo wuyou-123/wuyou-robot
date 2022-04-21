@@ -96,9 +96,10 @@ public class RobotListenerInterceptor implements ListenerInterceptor {
         final RobotListen annotation = listenerFunction.getAnnotation(RobotListen.class);
         if (msgGet instanceof GroupMsg) {
             final GroupMsg groupMsg = (GroupMsg) msgGet;
-            if (isBoot(context.getListenerFunction(), annotation, groupMsg.getGroupInfo().getGroupCode())) {
+            String groupCode = groupMsg.getGroupInfo().getGroupCode();
+            if (isBoot(context.getListenerFunction(), annotation, groupCode)) {
                 assert annotation != null;
-                log.info(String.format("执行监听器%s(%s)失败, 当前群未开机", listenerFunction.getName(), annotation.desc()));
+                log.info(String.format("执行监听器%s(%s)失败, 当前群(%s)未开机", listenerFunction.getName(), annotation.desc(), groupCode));
                 return false;
             }
         }
