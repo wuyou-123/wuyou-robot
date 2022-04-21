@@ -20,6 +20,8 @@ public class Zobrist {
     private int code;
 
     public void init() {
+        this.com.clear();
+        this.hum.clear();
         for (int i = 0; i < this.size * this.size; i++) {
             this.com.add(this.rand());
             this.hum.add(this.rand());

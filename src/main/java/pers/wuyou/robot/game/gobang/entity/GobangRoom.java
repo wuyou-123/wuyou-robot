@@ -106,6 +106,7 @@ public class GobangRoom extends BaseRoom<GobangPlayer> {
 
     public void init() {
         zobrist.init();
+        allSteps.clear();
         int size = 15;
         this.count = 0;
         if (board != null) {

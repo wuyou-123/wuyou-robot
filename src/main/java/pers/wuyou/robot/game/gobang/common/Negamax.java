@@ -246,9 +246,6 @@ public class Negamax {
     }
 
     public Step deepAll(int role) {
-        if (role == 0) {
-            role = Role.BLACK;
-        }
         List<Step> candidates = room.gen(role, false, false);
         return deeping(candidates, role, room.playWithBot() ? 10 : 2);
 
