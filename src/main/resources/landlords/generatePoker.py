@@ -20,7 +20,8 @@ for i, im in enumerate(ims):
 
 # 改变随机点颜色
 img_array = np.array(result)
-img_array[random.randint(0, 80)][random.randint(0, 80)] = (254, 254, 254)
+for i in range(80):
+    img_array[random.randint(i, 79)][random.randint(i, 104)] = (250, 250, 250)
 result = Image.fromarray(np.uint8(img_array))
 
 # 保存图片

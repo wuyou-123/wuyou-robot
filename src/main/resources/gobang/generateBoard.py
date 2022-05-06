@@ -25,5 +25,11 @@ if len(sys.argv) > 4:
     x1 = width / 100 * (current[1] * 6.53 + 1.5)
     x2 = width / 100 * (current[0] * 6.53 + 1.5)
     draw.polygon((x1+10, x2+15, x1+15, x2+20, x1+20, x2+15, x1+15, x2+10), 'red', 'red')
+# 改变随机点颜色
+img_array = np.array(image)
+for i in range(80):
+    img_array[random.randint(i, width-1)][random.randint(i, width-1)] = (20, 20, 20)
+image = Image.fromarray(np.uint8(img_array))
+
 image.save(sys.argv[2])
 # image.show()
