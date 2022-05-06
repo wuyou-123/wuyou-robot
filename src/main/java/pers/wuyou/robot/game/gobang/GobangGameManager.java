@@ -35,7 +35,7 @@ public class GobangGameManager extends BaseGameManager {
     }
 
     public static boolean checkResource() {
-        return manager.checkRes("classpath:**/generateBoard.py", "classpath:**/board.jpg");
+        return manager.checkRes("classpath:**/generateBoard.py", "classpath:**/board.jpg", "classpath:**/consola.ttf");
     }
 
     public static GobangPlayer getFirstHand(GobangRoom room) {

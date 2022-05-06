@@ -85,7 +85,7 @@ public class GobangRoom extends BaseRoom<GobangPlayer> {
         String boardStr = Arrays.deepToString(this.board);
         String md5 = Encryption.encrypByMd5(boardStr);
         boardImage = gameManager.getTempPath() + md5 + ".jpg";
-        CommandUtil.exec("python", gameManager.getTempPath() + "generateBoard.py", gameManager.getTempPath() + "board.jpg", boardImage, boardStr, lastStep == null ? null : lastStep.toString());
+        CommandUtil.exec("python", gameManager.getTempPath() + "generateBoard.py", gameManager.getTempPath() + "board.jpg", boardImage, gameManager.getTempPath() + "consola.ttf", boardStr, lastStep == null ? null : lastStep.toString());
         return CatUtil.getImage(boardImage).toString();
     }
 
