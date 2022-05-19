@@ -35,6 +35,7 @@ public class LookListener {
     public LookListener(TianApiTool tianApiTool) {
         this.tianApiTool = tianApiTool;
     }
+
     public void addIp(String ip, String group) {
         if (LOOK_MAP.get(group) == null) {
             return;
@@ -50,7 +51,7 @@ public class LookListener {
         Map<String, String> map = new HashMap<>(1);
 
         final String now = System.currentTimeMillis() + "";
-        map.put("content", "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><msg serviceID=\"108\" templateID=\"1\" action=\"web\" brief=\"窥屏检测中...\" sourcePublicUin=\"2747277822\" sourceMsgId=\"0\" url=\"https://youxi.gamecenter.qq.com/\" flag=\"0\" adverSign=\"0\" multiMsgFlag=\"0\"><item layout=\"2\" advertiser_id=\"0\" aid=\"0\"><picture cover=\"" + String.format("%slook?group=%s&amp;time=%s", host, group, now) + "\" w=\"0\" h=\"0\" /><title>窥屏检测</title><summary>检测中, 请稍候(电脑端窥屏暂时无法检测)</summary></item><source name=\"窥屏检测中...\" icon=\"https://url.cn/JS8oE7\" action=\"plugin\" a_actionData=\"mqqapi://app/action?pkg=com.tencent.mobileqq&amp;cmp=com.tencent.biz.pubaccount.AccountDetail.activity.api.impl.AccountDetailActivity&amp;uin=2747277822\" i_actionData=\"mqqapi://card/show_pslcard?src_type=internal&amp;card_type=public_account&amp;uin=2747277822&amp;version=1\" appid=\"-1\" /></msg>\n");
+        map.put("content", "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><msg serviceID=\"1\" templateID=\"12345\" action=\"web\" brief=\"[分享] 窥屏检测中...\" sourceMsgId=\"0\" url=\"\" flag=\"3\" adverSign=\"0\" multiMsgFlag=\"0\"><item layout=\"2\" advertiser_id=\"0\" aid=\"0\"><picture cover=\"" + String.format("%slook?group=%s&amp;time=%s", host, group, now) + "\" w=\"0\" h=\"0\" /><title size=\"25\" color=\"#000000\">窥屏检测中...</title><summary color=\"#000000\">电脑端窥屏暂时无法检测...</summary></item><source name=\"\" icon=\"\" action=\"\" appid=\"0\" /></msg>");
         final String share = CatUtil.UTILS.toCat("xml", map);
         if (LOOK_MAP.containsKey(group)) {
             return;
