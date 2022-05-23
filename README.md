@@ -1,5 +1,6 @@
 # wuyou-robot
-基于simbot的机器人项目
+基于[Simpler Robot](https://github.com/ForteScarlet/simpler-robot/tree/v2-dev)的机器人项目, [v3](https://github.com/wuyou-123/wuyou-robot-v3/)
+
 # 如何开始?
 1. 先学会`SpringBoot`框架
 2. 所需环境: `Java1.8+`  `MySQL`  `Node.Js`  `Python3`
