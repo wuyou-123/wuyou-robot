@@ -22,7 +22,7 @@ for colIndex, colArr in enumerate(arr):
         if rowIndex == 0:
             draw.text((5, width / 100 * (colIndex * offset + 3)), chr(colIndex + 65), 'black', font)  # 画纵坐标
     draw.text((width / 100 * (colIndex * offset + 3), 5), str(colIndex), 'black', font)  # 画横坐标
-if len(sys.argv) > 4:
+if len(sys.argv) > 5:
     current = eval(sys.argv[5])
     x1 = width / 100 * (current[1] * offset + 1.5)
     x2 = width / 100 * (current[0] * offset + 1.5)
