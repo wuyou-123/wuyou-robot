@@ -59,5 +59,6 @@ public class GameStart implements LandlordsGameEvent {
         LandlordsNotifyUtil.notify(currentPlayer, LandlordsNotifyType.CALL_LANDLORDS, 2);
         currentPlayer.setStatus(LandlordsPlayerGameStatus.CALL_LANDLORDS);
         room.setStatus(LandlordsRoomStatus.CALL_LANDLORDS);
+        room.setCallLandlordsCount(0);
     }
 }
