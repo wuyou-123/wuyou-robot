@@ -2,10 +2,10 @@ package pers.wuyou.robot.game.landlords.game.event;
 
 import pers.wuyou.robot.game.common.Constant;
 import pers.wuyou.robot.game.landlords.common.LandlordsGameEvent;
+import pers.wuyou.robot.game.landlords.common.LandlordsPlayerGameStatus;
 import pers.wuyou.robot.game.landlords.entity.LandlordsPlayer;
 import pers.wuyou.robot.game.landlords.entity.LandlordsRoom;
 import pers.wuyou.robot.game.landlords.entity.PokerSell;
-import pers.wuyou.robot.game.landlords.common.LandlordsPlayerGameStatus;
 import pers.wuyou.robot.game.landlords.enums.SellType;
 import pers.wuyou.robot.game.landlords.helper.PokerHelper;
 import pers.wuyou.robot.game.landlords.util.LandlordsNotifyUtil;
@@ -130,10 +130,10 @@ public class GamePlayerMessageOnRound implements LandlordsGameEvent {
             LandlordsNotifyUtil.notifyPlayerChoosePokers(player, list);
             return;
         }
-        if (player.getStatus().equals(LandlordsPlayerGameStatus.CHOOSE_TIP)) {
-            LandlordsNotifyUtil.notifyPlayer(player, "请输入一个数字.");
-            return;
-        }
+///        if (player.getStatus().equals(LandlordsPlayerGameStatus.CHOOSE_TIP)) {
+///            LandlordsNotifyUtil.notifyPlayer(player, "请输入一个数字.");
+///            return;
+///        }
         // 发送其他消息
         if (player.isPrivateMessage()) {
             LandlordsNotifyUtil.notifyPlayerSpeak(player, message);
