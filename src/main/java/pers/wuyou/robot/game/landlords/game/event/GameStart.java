@@ -52,6 +52,7 @@ public class GameStart implements LandlordsGameEvent {
         room.setCurrentPlayerIndex(startIndex);
         for (LandlordsPlayer p : playerList) {
             p.setType(PlayerType.FARMER);
+            p.setCalledLandlords(null);
             LandlordsNotifyUtil.notifyPlayerStart(p);
         }
         ThreadUtil.sleep(200);
