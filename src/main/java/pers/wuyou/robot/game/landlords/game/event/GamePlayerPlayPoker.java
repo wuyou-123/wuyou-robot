@@ -68,6 +68,7 @@ public class GamePlayerPlayPoker implements LandlordsGameEvent {
             room.gameEnd();
             room.setStatus(LandlordsRoomStatus.NO_START);
         } else {
+            player.getPlayerDataMap().remove("list");
             room.setLastPlayer(player);
             room.setCurrentPlayer(next);
             // 通知下一位玩家出牌
