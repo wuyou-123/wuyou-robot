@@ -55,6 +55,9 @@ public class MessageDispenser {
 
     public static boolean playerPoker(Map<String, Object> data) {
         String message = data.get(Constant.MESSAGE).toString().toLowerCase(Locale.ROOT);
+        if (EXIT_CMD_LIST.contains(message)) {
+            return true;
+        }
         final Character[] pokerList = PokerHelper.parsePoker(message);
         String qq = data.get(Constant.ACCOUNT_CODE).toString();
         LandlordsRoom room = (LandlordsRoom) Game.getPlayer(qq).getRoom();
@@ -87,12 +90,19 @@ public class MessageDispenser {
     @SuppressWarnings("unchecked")
     private static void playerChoose(Map<String, Object> data) {
         String message = data.get(Constant.MESSAGE).toString().toLowerCase(Locale.ROOT);
+        if (EXIT_CMD_LIST.contains(message)) {
+            GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAYER_EXIT, data);
+            return;
+        }
         final Character[] pokerList = PokerHelper.parsePoker(message);
         String qq = data.get(Constant.ACCOUNT_CODE).toString();
         LandlordsPlayer player = (LandlordsPlayer) Game.getPlayer(qq);
         try {
             final List<PokerSell> list = (List<PokerSell>) player.getPlayerData("list");
             int choose = Integer.parseInt(message);
+            if (list == null) {
+                throw new NumberFormatException();
+            }
             if (choose < 1 || choose > list.size()) {
                 if (pokerList != null) {
                     GameEventManager.call(LandlordsGameEventCode.CODE_GAME_PLAY_POKER, data);

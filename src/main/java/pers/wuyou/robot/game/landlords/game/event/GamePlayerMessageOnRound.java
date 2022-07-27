@@ -68,7 +68,7 @@ public class GamePlayerMessageOnRound implements LandlordsGameEvent {
         final Map<String, Object> playerDataMap = player.getPlayerDataMap();
         final List<SellType> sellTypes = Arrays.asList((SellType[]) playerDataMap.get(SELL_TYPE));
         List<PokerSell> sells;
-        if (player.getRoom().getLastPlayer().equals(player)) {
+        if (player.equals(player.getRoom().getLastPlayer())) {
             sells = PokerHelper.validSells(null, player.getPokers());
         } else {
             sells = PokerHelper.validSells(player.getRoom().getLastPlayPoker(), player.getPokers());

@@ -62,7 +62,7 @@ public class GameEventManager {
                 assert data != null;
                 String accountCode = data.get(Constant.ACCOUNT_CODE).toString();
                 BasePlayer<?> player = Game.getPlayer(accountCode);
-                NotifyUtil.notifyRoom(groupCode, String.format("玩家 %s 退出了房间", player));
+                NotifyUtil.notifyRoom(groupCode, String.format("遇到异常! 请联系作者QQ1097810498\n玩家 %s 退出了房间", player));
                 Game.removePlayer(player);
                 if (room != null) {
                     room.gameEnd();
