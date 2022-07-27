@@ -72,7 +72,7 @@ public class PokerHelper {
         }
         if (lastPokerSell.getSellType() != SellType.BOMB) {
             for (PokerSell sell : sells) {
-                if (sell.getSellType() == SellType.BOMB) {
+                if (sell.getSellType() == SellType.BOMB && sell.getScore() > lastPokerSell.getScore()) {
                     validSells.add(sell);
                 }
             }
